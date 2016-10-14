@@ -179,7 +179,11 @@ In all example you must replace <code>TOKEN</code> with the OAuth2 token.
 
 <p>A Domain has Dimension and Metric attributes, which are dynamically mapped to the underlying data-source. A user can also modify an existing attribute, or create new ones. Those changes are persisted in the model.</p>
 
-<h1 id="analytics">Analytics</h1>
+<h2 id="bookmark">Bookmark</h2>
+
+<p>A Bookmark is a simple way to create a custom view on your model. From a Domain, you can define a default analysis, select filters, restrict the dimension and metrics usable for pivoting. Bookmarks are also organized on their own inside folders, independently from the Projects - so you can mix in the same folder Bookmarks from different Projects.</p>
+
+<h1 id="analytics-api">Analytics API</h1>
 
 <p>The Analytics API provides you all you need to interact with your data:</p>
 
@@ -190,6 +194,10 @@ In all example you must replace <code>TOKEN</code> with the OAuth2 token.
 <li>explore a Bookmark or Domain scope</li>
 <li>create a Bookmark out of a query</li>
 </ul>
+
+<aside class="notice">
+The Analytics API traits Domain and Bookmark mostly the same. Although they are different kind of object, you can query and view them using the same operations. 
+</aside>
 
 <aside class="notice">
 In order to discover the API feature in a more friendly way, you can use most of the API methods with style=HTML.
@@ -242,7 +250,7 @@ In that mode the API will output some simple HTML that allows interaction throug
 <p>This method retrieves all the content available for the authenticated user.</p>
 
 <aside class="notice">
-This API method support the style=HTML.
+This API method support the style=HTML for interactive exploration.
 </aside>
 
 <h3 id="http-request">HTTP Request</h3>
@@ -293,10 +301,6 @@ Remember to provide a valid OAuth TOKEN!
 </tr>
 </tbody></table>
 
-<aside class="success">
-Remember — a happy kitten is an authenticated kitten!
-</aside>
-
 <h3 id="parent-parameter">Parent parameter</h3>
 
 <p>The parent parameter is a path. Each section of the path identify a valid container, using either its name or immutable ID.</p>
@@ -324,13 +328,40 @@ Remember — a happy kitten is an authenticated kitten!
 
 <p>Note that in order to list a project content, the OB server will request access to the project&rsquo;s database, and update the content dynamically. So the first time you access it may take some delay depending on the database.</p>
 
-<h2 id="query-a-specific-bookmark-or-domain">Query a Specific Bookmark or Domain</h2>
+<h4 id="bookmarks">Bookmarks</h4>
 
-<p>This method performs a query on the specifed Bookmark or Domain.</p>
+<p>Both the <code class="prettyprint">/MYBOOKMARK</code> and <code class="prettyprint">/SHARED</code> paths returns bookmarks. The only difference is the bookmark visibility:</p>
+
+<ul>
+<li><code class="prettyprint">/MYBOOKMARK</code> only returns the bookmarks that the authenticated user has created </li>
+<li><code class="prettyprint">/SHARED</code> returns the bookmarks shared with the authenticated user</li>
+</ul>
+
+<p>Both path returns a list of Bookmarks and Folders.</p>
+
+<h3 id="reply">Reply</h3>
+
+<p>The reply has the following structure:</p>
+
+<h2 id="query-a-bookmark-or-domain">Query a Bookmark or Domain</h2>
+
+<p>This method performs a query on a Bookmark or Domain and return the result as a paginated data table.</p>
+
+<p>The result of the query is automatically stored in the server cache, so it is not a performance problem to perform the same query repeatedly, no need to cache the result on the application side. You can also paginate the results to simplify display. Also it is a good practice to set a <code class="prettyprint">limit</code> on the query, especially for interactive queries. Although the server will paginate the result internally to avoid memory overflow, you may have trouble retrieving the result in JSON. If you really need to extract a large table, prefer using the /export API method which provides streaming results.</p>
+
+<p>It is possible to change the layout of the table using the <code class="prettyprint">data</code> parameter.</p>
+
+<aside class="notice">
+This API method support the style=HTML for interactive exploration.
+</aside>
 
 <h3 id="http-request">HTTP Request</h3>
 
-<p><code class="prettyprint">GET http://yourserverdomain/v4.2/&lt;ID&gt;</code></p>
+<p><code class="prettyprint">GET http://yourserverdomain/v4.2/analytics/&lt;REFERENCE&gt;/query</code></p>
+
+<aside class="success">
+Remember to provide a valid OAuth TOKEN!
+</aside>
 
 <h3 id="url-parameters">URL Parameters</h3>
 
@@ -348,9 +379,202 @@ Remember — a happy kitten is an authenticated kitten!
 </tr>
 </tbody></table>
 
+<h4 id="bookmark-domain-reference">Bookmark/Domain Reference</h4>
+
 <h3 id="query-parameters">Query Parameters</h3>
 
-<h3 id="bookmark-domain-reference">Bookmark/Domain Reference</h3>
+<p>Note that you can use the API without providing any additional parameters. In that case the API will compute the default analysis for the reference.
+If it is a Bookmark, it will use the bookmark default analysis. In case of a Domain, it will do an no-op analysis.</p>
+
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>groupBy</td>
+<td>false</td>
+<td>This is a multi-valued parameter. Each value must be a valid expression in the Bookmark/Domain scope. See the Expression chapter for reference, but usually you will pass the dimension name you want to group the result by. Alternatively you can use a wildcard (*) as a value to replace the default reference settings. In case of Bookmark it will be replaced by the selected dimensions; in case of Domain it will be replaced by ALL dimensions (so use with care).</td>
+</tr>
+<tr>
+<td>metrics</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>filters</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>period</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>timeframe</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>orderBy</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>limit</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>offset</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>maxRsults</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>startIndex</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>lazy</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>data</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>style</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>envelope</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>timeout</td>
+<td>false</td>
+<td></td>
+</tr>
+</tbody></table>
+
+<h4 id="default-query">Default Query</h4>
+
+<p>If no parameter is provided, the method will try to compute a default query.</p>
+
+<p>In case of a Bookmark reference, it will compute the Bookmark pre-defined analysis, with default settings.</p>
+
+<h4 id="expressions">Expressions</h4>
+
+<h3 id="reply">Reply</h3>
+
+<h4 id="table-header">Table Header</h4>
+
+<h4 id="table-layout">Table layout</h4>
+
+<p>The <code class="prettyprint">data</code> parameter allows to select the output layout.</p>
+
+<table><thead>
+<tr>
+<th>Data&nbsp;Value</th>
+<th>Table Layout</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code class="prettyprint">table</code></td>
+<td>return a matrix, that is an array of row array. A row is an array cell values.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">records</code></td>
+<td>return the table as an array of records. Each row is a record of the form <code class="prettyprint">{&quot;columnName&quot;:value,...}</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">transpose</code></td>
+<td>if the query has multiple metrics, transpose the table to create a row for each record/metric. It adds two additional columns <code class="prettyprint">metric</code> and <code class="prettyprint">value</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">legacy</code></td>
+<td>return a JSON compatible with legacy API - do not use!</td>
+</tr>
+<tr>
+<td><code class="prettyprint">sql</code></td>
+<td>additionally you can ask to retrieve the SQL code for the Query instead of the results</td>
+</tr>
+</tbody></table>
+
+<h2 id="export-a-bookmark-or-domain">Export a Bookmark or Domain</h2>
+
+<p>This method is similar to the /query API but will stream the result as a data file instead of returning a JSON reply.</p>
+
+<p>It support several format for export: CSV, XLS, XLSX</p>
+
+<h3 id="http-request">HTTP Request</h3>
+
+<p><code class="prettyprint">GET http://yourserverdomain/v4.2/analytics/{REFERENCE}/export/{filename}</code></p>
+
+<aside class="success">
+Remember to provide a valid OAuth TOKEN!
+</aside>
+
+<h3 id="url-parameters">URL Parameters</h3>
+
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>REFERENCE</td>
+<td>true</td>
+<td>The identifier of the Bookmark/Domain to retrieve</td>
+</tr>
+<tr>
+<td>filename</td>
+<td>true</td>
+<td>The filename can be defined here to provide a filename when the user will be prompted to save the file. The name part is optional, but the file extension must be provided to define the format of the export</td>
+</tr>
+</tbody></table>
+
+<table><thead>
+<tr>
+<th>Filename&nbsp;extension</th>
+<th>Format</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>.csv</td>
+<td>Comma separated file with an header for the columns</td>
+</tr>
+<tr>
+<td>.xls</td>
+<td>Excel file format</td>
+</tr>
+<tr>
+<td>.xlsx</td>
+<td>Excel file format</td>
+</tr>
+</tbody></table>
+
+<h2 id="view-a-bookmark-or-domain">View a Bookmark or Domain</h2>
 
 <h2 id="api-output-parameters">API output parameters</h2>
 
@@ -378,6 +602,14 @@ Remember — a happy kitten is an authenticated kitten!
 <h3 id="style-parameter">Style parameter</h3>
 
 <h3 id="envelope-parameter">Envelope parameter</h3>
+
+<h1 id="model-api">Model API</h1>
+
+<p>The Model API allows you to configure the meta-model, including project creation, customization of domains, creation of dimensions and metrics, configuring hierarchies and indexing, etc&hellip;</p>
+
+<h1 id="management-api">Management API</h1>
+
+<p>This is a set of APIs to manage the OB server.</p>
 
           <h1 id="errors">Errors</h1>
 
