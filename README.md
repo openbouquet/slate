@@ -3,7 +3,7 @@ Open Bouquet Slate API documentation Project
 
 This is the project for the Open Bouquet Slate API documentation.
 
-If you are looking for Open Bouquet API documentation, check http://openboquuet.github.io/slate instead.
+If you are looking for Open Bouquet API documentation, check http://openbouquet.github.io/slate instead.
 
 Slate Documentation (for reference)
 -------------
