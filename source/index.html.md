@@ -75,7 +75,11 @@ A Domain is associated with a table or view in the data-source. A Domain can be 
 
 A Domain has Dimension and Metric attributes, which are dynamically mapped to the underlying data-source. A user can also modify an existing attribute, or create new ones. Those changes are persisted in the model.
 
-# Analytics
+## Bookmark
+
+A Bookmark is a simple way to create a custom view on your model. From a Domain, you can define a default analysis, select filters, restrict the dimension and metrics usable for pivoting. Bookmarks are also organized on their own inside folders, independently from the Projects - so you can mix in the same folder Bookmarks from different Projects.
+
+# Analytics API
 
 The Analytics API provides you all you need to interact with your data:
 
@@ -84,6 +88,10 @@ The Analytics API provides you all you need to interact with your data:
 * view dataviz for a specific Bookmark or Domain (as VegaLite output)
 * explore a Bookmark or Domain scope
 * create a Bookmark out of a query
+
+<aside class="notice">
+The Analytics API traits Domain and Bookmark mostly the same. Although they are different kind of object, you can query and view them using the same operations. 
+</aside>
 
 <aside class="notice">
 In order to discover the API feature in a more friendly way, you can use most of the API methods with style=HTML.
@@ -138,7 +146,7 @@ curl -X GET
 This method retrieves all the content available for the authenticated user.
 
 <aside class="notice">
-This API method support the style=HTML.
+This API method support the style=HTML for interactive exploration.
 </aside>
 
 ### HTTP Request
@@ -163,10 +171,6 @@ visibility | false, default=ALL | If visibility is ALL, will show all existing c
 style | false, default=HUMAN | defines the output style, check API reference
 envelope | false, default=RESULT | defines the output content, check API reference
 
-<aside class="success">
-Remember — a happy kitten is an authenticated kitten!
-</aside>
-
 ### Parent parameter
 
 The parent parameter is a path. Each section of the path identify a valid container, using either its name or immutable ID.
@@ -190,14 +194,39 @@ In order to list a project content, you can use it's ID or name. Note that the n
 
 Note that in order to list a project content, the OB server will request access to the project's database, and update the content dynamically. So the first time you access it may take some delay depending on the database.
 
+#### Bookmarks
 
-## Query a Specific Bookmark or Domain
+Both the `/MYBOOKMARK` and `/SHARED` paths returns bookmarks. The only difference is the bookmark visibility:
 
-This method performs a query on the specifed Bookmark or Domain.
+* `/MYBOOKMARK` only returns the bookmarks that the authenticated user has created 
+* `/SHARED` returns the bookmarks shared with the authenticated user
+
+Both path returns a list of Bookmarks and Folders.
+
+### Reply
+
+The reply has the following structure:
+
+
+## Query a Bookmark or Domain
+
+This method performs a query on a Bookmark or Domain and return the result as a paginated data table.
+
+The result of the query is automatically stored in the server cache, so it is not a performance problem to perform the same query repeatedly, no need to cache the result on the application side. You can also paginate the results to simplify display. Also it is a good practice to set a `limit` on the query, especially for interactive queries. Although the server will paginate the result internally to avoid memory overflow, you may have trouble retrieving the result in JSON. If you really need to extract a large table, prefer using the /export API method which provides streaming results.
+
+It is possible to change the layout of the table using the `data` parameter.
+
+<aside class="notice">
+This API method support the style=HTML for interactive exploration.
+</aside>
 
 ### HTTP Request
 
-`GET http://yourserverdomain/v4.2/<ID>`
+`GET http://yourserverdomain/v4.2/analytics/<REFERENCE>/query`
+
+<aside class="success">
+Remember to provide a valid OAuth TOKEN!
+</aside>
 
 ### URL Parameters
 
@@ -205,10 +234,87 @@ Parameter | Required | Description
 --------- | -------- | -----------
 REFERENCE | true | The identifier of the Bookmark/Domain to retrieve
 
+#### Bookmark/Domain Reference
+
 ### Query Parameters
 
+Note that you can use the API without providing any additional parameters. In that case the API will compute the default analysis for the reference.
+If it is a Bookmark, it will use the bookmark default analysis. In case of a Domain, it will do an no-op analysis.
 
-### Bookmark/Domain Reference
+Parameter | Required | Description
+--------- | -------- | -----------
+groupBy | false | This is a multi-valued parameter. Each value must be a valid expression in the Bookmark/Domain scope. See the Expression chapter for reference, but usually you will pass the dimension name you want to group the result by. Alternatively you can use a wildcard (*) as a value to replace the default reference settings. In case of Bookmark it will be replaced by the selected dimensions; in case of Domain it will be replaced by ALL dimensions (so use with care).
+metrics | false |
+filters | false |
+period | false |
+timeframe | false |
+compareTo | false |
+orderBy | false | 
+limit | false | 
+offset | false | 
+maxRsults | false | 
+startIndex | false | 
+lazy | false | 
+data | false | 
+style | false | 
+envelope | false | 
+timeout | false | 
+
+#### Default Query
+
+If no parameter is provided, the method will try to compute a default query.
+
+In case of a Bookmark reference, it will compute the Bookmark pre-defined analysis, with default settings.
+
+#### Expressions
+
+### Reply
+
+#### Table Header
+
+#### Table layout
+
+The `data` parameter allows to select the output layout.
+
+Data&nbsp;Value | Table Layout
+---------- | ------------
+`table` | return a matrix, that is an array of row array. A row is an array cell values.
+`records` | return the table as an array of records. Each row is a record of the form `{"columnName":value,...}`
+`transpose` | if the query has multiple metrics, transpose the table to create a row for each record/metric. It adds two additional columns `metric` and `value`
+`legacy` | return a JSON compatible with legacy API - do not use!
+`sql` | additionally you can ask to retrieve the SQL code for the Query instead of the results
+
+
+## Export a Bookmark or Domain
+
+This method is similar to the /query API but will stream the result as a data file instead of returning a JSON reply.
+
+It support several format for export: CSV, XLS, XLSX
+
+### HTTP Request
+
+`GET http://yourserverdomain/v4.2/analytics/{REFERENCE}/export/{filename}`
+
+<aside class="success">
+Remember to provide a valid OAuth TOKEN!
+</aside>
+
+### URL Parameters
+
+Parameter | Required | Description
+--------- | -------- | -----------
+REFERENCE | true | The identifier of the Bookmark/Domain to retrieve
+filename | true | The filename can be defined here to provide a filename when the user will be prompted to save the file. The name part is optional, but the file extension must be provided to define the format of the export
+
+Filename&nbsp;extension | Format
+----------------------- | ------
+.csv | Comma separated file with an header for the columns
+.xls | Excel file format
+.xlsx | Excel file format
+
+
+## View a Bookmark or Domain
+
 
 ## API output parameters
 
@@ -223,5 +329,11 @@ envelope | false | defines the output content. Values can be ALL, RESULT, DATA
 
 ### Envelope parameter
 
+# Model API
 
+The Model API allows you to configure the meta-model, including project creation, customization of domains, creation of dimensions and metrics, configuring hierarchies and indexing, etc...
+
+# Management API
+
+This is a set of APIs to manage the OB server.
 
