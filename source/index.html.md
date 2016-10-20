@@ -1,5 +1,5 @@
 ---
-title: OPen Bouquet API Reference
+title: Open Bouquet API Reference
 
 language_tabs:
   - shell : cURL
@@ -107,42 +107,6 @@ curl -X GET
 	"http://yourserverdomain/v4.2/analytics"
 ```
 
-> The above command returns JSON structured like this:
-
-```json
-{
-"parent": {
-"name": "Root",
-"description": "list all your available content, organize by Projects and Bookmarks",
-"selfRef": "/",
-"type": "FOLDER"
-},
-"children": [
-{
-"name": "Projects",
-"description": "list all your Projects",
-"parentRef": "/",
-"selfRef": "/PROJECTS",
-"type": "FOLDER"
-},
-{
-"name": "Shared Bookmarks",
-"description": "list all the bookmarks shared with you",
-"parentRef": "/",
-"selfRef": "/SHARED",
-"type": "FOLDER"
-},
-{
-"name": "My Bookmarks",
-"description": "list all your bookmarks",
-"parentRef": "/",
-"selfRef": "/MYBOOKMARKS",
-"type": "FOLDER"
-}
-]
-}
-```
-
 This method retrieves all the content available for the authenticated user.
 
 <aside class="notice">
@@ -205,8 +169,58 @@ Both path returns a list of Bookmarks and Folders.
 
 ### Reply
 
-The reply has the following structure:
 
+> This is the reply for content at the root:
+
+```json
+{
+"parent": {
+"name": "Root",
+"description": "list all your available content, organize by Projects and Bookmarks",
+"selfRef": "/",
+"type": "FOLDER"
+},
+"children": [
+{
+"name": "Projects",
+"description": "list all your Projects",
+"parentRef": "/",
+"selfRef": "/PROJECTS",
+"type": "FOLDER"
+},
+{
+"name": "Shared Bookmarks",
+"description": "list all the bookmarks shared with you",
+"parentRef": "/",
+"selfRef": "/SHARED",
+"type": "FOLDER"
+},
+{
+"name": "My Bookmarks",
+"description": "list all your bookmarks",
+"parentRef": "/",
+"selfRef": "/MYBOOKMARKS",
+"type": "FOLDER"
+}
+]
+}
+```
+
+The reply has the following structure.
+
+The `parent` node describe the current location of the `parent` parameter. For instance you could use it to browse upward, because it provides also `parentRef` property (unless it is the root folder).
+
+The `children` node is an array of nodes, and it is the content of the `parent` node.
+
+Each node has the same structure:
+
+Property | Description
+-------- | -----------
+name |
+description | 
+parentRef | 
+selfRef | 
+type | 
 
 ## Query a Bookmark or Domain
 
@@ -259,6 +273,7 @@ data | false |
 style | false | 
 envelope | false | 
 timeout | false | 
+state | false |
 
 #### Default Query
 
@@ -266,7 +281,40 @@ If no parameter is provided, the method will try to compute a default query.
 
 In case of a Bookmark reference, it will compute the Bookmark pre-defined analysis, with default settings.
 
+#### State
+
+If a stateID is provided, the API will try to load the State.
+
+#### Period & TimeFrame
+
+The `period` parameter defines the expression to use as the main Period for filtering on `timeframe` and also to perform time-over-time comparison (see [CompareTo](#compareto)).
+
+Also once you defined the `period`, you can then use the `__PERIOD` alias in the expression you are using for other parameters (for example `groupby` or `orderby`; it also work with the [/view API](#view-a-bookmark-or-domain) as `x`, `y`, `color`, ... parameters). Note that you can use the alias `__PERIOD` also in expression, for example: `MONTHLY('__PERIOD')` to extract the first day of month of the date - if you want to aggregate results by month for instance.
+
+The `timeframe` parameter is an array of values that you can use to filter the data on the `period` value.
+If the `timeframe` is not defined, even if the `period` is defined, no filter is applied.
+If the `timeframe` is defined, you must also define the `period` (unless there is a default value available for it)
+
+There are three ways to define the `timeframe`: 
+ * using explicit date range
+ * using an alias
+ * using a expression
+
+##### TimeFrame defined using explicit date range
+
+##### TimeFrame defined using an alias
+
+##### TimeFrame defined using an expression
+
+Note that this is a shorthand to simplify date filtering. You can also use the `filters` parameter if you need to address some special cases.
+
+#### CompareTo
+
 #### Expressions
+
+The expressions are all evaluated in the current Domain scope (if the reference is a Bookmark, it is its domain).
+
+See the ["Expression Reference Guide"](#expression-reference-guide) for details about how to create expressions.
 
 ### Reply
 
@@ -337,3 +385,253 @@ The Model API allows you to configure the meta-model, including project creation
 
 This is a set of APIs to manage the OB server.
 
+# Expression Reference Guide
+
+This part describes how to write Expression and the available Functions to use.
+
+## Constant Expression
+
+Constant type | Example
+------------- | -------
+Numerical   | 123.4
+Text   | "Hello world"
+Date   | DATE("DD/MM/YY")<br><i>note that you cannot change the date format when defining a constant</i>
+
+## Referencing objects
+
+Expression allows you to create references to a model object and to perform operations on their underlying values.
+
+To create a reference, you can use two syntax:
+
+ * Shortand
+ * Explicit
+
+Important: The resolution of an object identifier is case sensitive, and the identifier must be enclosed in simple quotes.
+
+Object type | Shorthand | Explicit
+----------- | --------- | --------
+Column | #'CUSTOMER_NAME' | [col:'CUSTOMER_NAME'] or @col:'CUSTOMER_NAME'
+Object by name<br>(Domain, Dimension, Metric or Relation) | 'Name' | [dimension:'Name'] or @metric:'Name'<br><i>note: using the explicit form can be useful to resolve name collision
+Object by ID<br>(Domain, Dimension, Metric or Relation) | @'someID' | [id:'someID']
+Parameter | $'M0' | [param:'M0']
+
+## Composing Expression
+
+If an expression is an Object, it is usually possible to compose it with expression valid in the target object scope.
+
+For example if the scope is the `Sales` domain, you can create the following expression to resolve the country of the customer: 
+
+    `'customer'.'address'.'country'.'name'`
+
+You can also use the special expression `$self` to reference the domain itself, for example: 
+
+    `'customer'.'address'`
+## Naming expressions
+
+Since version 4.2.2, Bouquet server allows us to give a name to expressions. Just use the AS keyword in the expression editor:
+
+'metric1' + 'metric2' AS 'sum_of_both_metrics'
+
+This can be useful when using custom expressions to compute an analysis. The resulting column in the data-table will have the expression's name. Note however that if you define a dimension or a metric, the dimension or metric given name will take precedence over the expression's name.
+
+## Operators
+
+Operator | Type | Description
+-------- | ---- | -----------
+expr1 &#124;&#124; expr2 | Logical | OR logical operator
+expr1 && expr2 | Logical | AND logical operator
+expr1 LIKE expr2  |  Logical | Search for a specified pattern in a column
+expr1 = expr2 | Comparison | Checks if expr1 is equal to expr2
+expr1 > expr2 | Comparison | Greater comparator
+expr1 >= expr2 | Comparison | Greater or equal comparator
+expr1 < expr2 | Comparison | Less comparator
+expr1 <= expr2 | Comparison | Less or equal comparator
+expr1 != expr2 | Comparison | Not equal comparator
+expr1 RLIKE expr2 | Comparison | Executes a "LIKE" comparison using a regexp expression
+n1 % n2 | Math  |  Modulo operator
+n1 + n2 | Math  |  Addition operator
+n1 - n2 | Math  |  Subtraction operator
+n1 *n2 | Math  |  Multiplication operator
+n1 / n2 | Math  |  Division operator
+n1 ** n2 | Math  |  Exponential operator (n1 to n2th power)
+
+## Math functions
+
+Function | Definition
+-------- | ----------
+ABS(n) | Absolute value of number
+ACOS(n) | Arc cosine of n
+ASIN(n) | Arc sine of n
+ATAN(n) | Arc tangent of n
+COS(n) | Cosine of n
+CEIL(n) | Smallest integer value that is greater than or equal to a number.
+COSH(n) | Hyperbolic cosine of n
+DEGREES(n) | Argument converted to degrees of n
+EXP(n1,n2) | Exponential (n1 to n2th power)
+FLOOR(n) | Largest integer value that is less than or equal to a number.
+GREATEST(expr1, expr2, ...) |Greatest value in a list of expressions
+LEAST(expr1, expr2, ...) | Smallest value in a list of expressions
+LN(n) | Natural Log of n, where n>0
+LOG(n1,n2) | Log of n1, base n2
+MINUS(n1,n2) | Difference between n1 and n2
+PI() | PI number of n
+POWER(n1,n2) | n1 raised to the n2th power.
+RADIANS(n) | Argument converted to radians of n
+RAND() |Generate a random value
+ROUND(n,[p]) |Number n rounded to a given (optionnal) precision p. p can be negative, to cause p digits left of the decimal point of the value n to become zero.
+SIGN(n) |Sign of a number (-1 or 1)
+SIN(n) | Sine of n
+SINH(n) | Hyperbolic Sine of n
+SQRT(n) | Square root of n
+SUBSTRACTION(n1,n2) | Substract n2 from n1
+TAN(n) | Tangent of n
+TANH(n) | Hyperbolic tangent of n
+TRUNCATE(n1,n2) | n1 truncated to n2 decimal places.
+
+##Date functions
+
+Function | Definition
+-------- | ----------
+ADD_MONTHS(date,num_months) | Returns date + num_months (can be negative)
+CURRENT_DATE() | Get the current system date
+CURRENT_TIMESTAMP() | Get the current system timestamp
+DAILY(timestamp) | convert the timestamp into a date
+DATE_ADD(date1,number,period) | Add to date1 the number of period (unit in SECOND,MINUTE,HOUR,DAY,MONTH,YEAR)<br>Note: Adding two dates is not possible
+DATE_INTERVAL(date1,date2,period) | Compute the difference btw date1 and date2 in a particular period (unit in SECOND,MINUTE,HOUR,DAY)
+DATE_SUB(date1,date2) | Remove date2 from date1
+DATE_SUB(date1,number,period) | Remove from date1 the number of period (unit in SECOND,MINUTE,HOUR,DAY,MONTH,YEAR)
+DATE_TRUNCATE(date,format) | Truncate the date (it can be a Date or a Timestamp) depending on the format constant string:<br>if format="day" then the result is the Date part of date (excluding the time)<br>if format="week" then the result is the first day of the week containing date<br>if format="month" then the result is the first day of the month containing date<br>if format="quarter" then the result is the first day of the quarter containing date<br>if format="year" then the result is the first day of the year containing date<br><br>Note: this is useful to perform weekly, monthly, quarterly or yearly analysis (you can also use the shortcut functions DAILY(), WEEKLY(), MONTHLY(), QUARTERLY() or YEARLY())
+DAY(date) | Extract the day of the month from date
+DAY_OF_WEEK(date) | extract the day of the week date, between 1 and 7. Day 1 is sunday
+DAY_OF_YEAR(date) | Extract the day of the year from the date
+FROM_EPOCH(n) | Return a timestamp based on a numeric field representing the number of seconds since 01-01-1970.
+HOUR(date) | Extract the hour from date
+MINUTE(date) | Extract minutes from date
+MONTHLY(date or timestamp) | return the first day of month from the date
+MONTHS(date) | Extract the month in the year from date
+MONTHS_BETWEEN(date1,date2) | Number of months between d1 and d2
+QUARTERLY(date or timestamp) | return the first day of the quarter from the date
+SECOND(date) | Extract seconds from date
+TO_DATE(timestamp) | Convert a timestamp to a date
+TO_DATE(text, format) | Convert a text to a date with a specific format
+TO_EPOCH(timestamp) | Return a numeric value based on a timestamp field representing the number of seconds since 01-01-1970.
+TO_TIMESTAMP(date) | Convert a timestamp to a date
+TO_TIMESTAMP(text, format) | Convert a text to a timestamp with a specific format
+WEEKLY(date or timestamp) | return the first day of the week from the date
+YEAR(date) | Extract the year from date
+YEARLY(date or timestamp) | return the first day of the year from the date
+
+## Text functions
+
+Function | Definition
+-------- | ----------
+CONCAT(s1,s2) | Concatenate Text1 and text2
+LENGTH(s) | Length of a text
+LOWER(s) | Lower case text
+MD5(string) | Calculates the MD5 hash of string, returning the result in hexadecimal
+POSITION(s1, s2) | Returns the position of s2 within s1 starting from index 1, 0 otherwise
+REPLACE(text, from, to) | Replace within the first text from text with to text
+REVERSE(string) | Returns reversed string
+SPLIT_PART(string, delimiter, position) | Splits string on delimiter and return the given field (counting from one)
+SUBSTRING(text,n1 [,n2]) | Substring of s, starting from index n1 optionally ending at index n2
+TRANSLATE(text, from, to) | Replace within the first text each single char specified in from text withto the corresponding char specified in to
+TO_CHAR(number) | Convert a number to a text
+TO_CHAR(date or timestamp, format) | Convert a date or timestamp to a text with a specific format. You can use any format supported by the underlying data-source. Check next § for a quick refernce guide
+UPPER(s) | Uppercase text
+
+### Date Formatting
+
+This is just a quick reference guide for usual formats. You can use any format supported by the underlying data-source. 
+
+Format | Definition
+------ | ----------
+YYYY | 4 digits year, e.g. 2016
+YYY  | 3 digits year, e.g. 016
+YY  | 2 digits year, e.g. 16
+Y  | 1 digit year, e.g. 6
+MONTH | Month name (uppercase)
+MON | abbreviated month name
+MM | month number (01-12)
+DAY | name of the day
+DDD | Day of the year (1-366)
+DD | Day of the month (1-31)
+D | Day of week (1-7)
+
+## Regex functions
+
+Function | Available | Definition
+-------- | --------- | ----------
+REGEXP_COUNT(string, regexp) | RedShift only | Counts the number of occurrence of the regexp within the string
+REGEXP_INSTR(string, regexp) | RedShift & Oracle | Returns the position of the first occurrence found of the searched regexp within the string
+REGEXP_REPLACE(string, regexp, replace) | All but MySQL | Replace substring matching a POSIX regular expression
+REGEXP_SUBSTR(string, regexp) | All but MySQL | Extract substring matching POSIX regular expression
+
+## JSON functions
+
+These functions are only supported by the Redshift plugin.
+
+Function | Definition
+-------- | ----------
+JSON_ARRAY_LENGTH ('json string') | Returns the number of elements in the outer array of a JSON string
+JSON_EXTRACT_ARRAY_ELEMENT_TEXT('json string', pos) | Returns a JSON array element in the outermost array of a JSON string, using a zero-based index.
+JSON_EXTRACT_PATH_TEXT(json string', 'path_elem' [,'path_elem'[, …]]) | Returns the value for the key:value pair referenced by a series of path elements in a JSON string. The JSON path can be nested up to five levels deep.
+
+## Aggregate functions
+
+Function | Definition
+-------- | ----------
+COUNT(*) or COUNT([DISTINCT] expr) | Count the no of rows returned or no of rows returned by expr
+AVG([DISTINCT] value expr) | Average value of ‘n' ignoring NULL
+DISTINCT(expr) | Get distinct values returned by expr
+MAX(value expr) | Maximum value within an expression
+MEDIAN([DISTINCT] n) | Median of n, ignoring NULLs.
+MIN(value expr) | Minimum value within an expression
+SUM(value expr) | Sum an expression
+
+VARIANCE([DISTINCT] n) | Variance of n, ignoring NULLs
+
+### Windowing / Analytics functions
+
+You can apply an operator on a group of rows using the windowing syntax:
+
+ * Use the partition expression to partition the query result set into groups based on one or more value expression. If you omit this clause, then the function treats all rows of the query result set as a single group
+ * Use the order by expression to specify how data is ordered within a partition
+
+Function | Definition
+-------- | ----------
+AVG([DISTINCT] value expr, [partition expr], [order by expr]) | Average value of ‘n' ignoring NULL
+DISTINCT(expr) | Get distinct values returned by expr
+MAX(value expr, [partition expr], [order by expr]) | Maximum value within an expression
+MEDIAN([DISTINCT] n) | Median of n, ignoring NULLs.
+MIN(value expr, [partition expr], [order by expr]) | Minimum value within an expression
+RANK([partition expr], [order by expr]) | Returns the rank of a value in apartition expression. Same values within a partition have the same rank and the partition can be ordered
+ROW_NUMBER([partition expr], [order by expr]) | Returns a number to each row to which it is applied in a partition expression. The number returned is unique within its partition and the partition can be ordered
+SUM(value expr, [partition expr], [order by expr]) | Sum an expression
+
+## Numeric functions
+
+Function | Definition
+-------- | ----------
+TO_INTEGER(expr) | Convert a text, or a numeric field to an integer
+TO_NUMBER(expr) | Convert a text, an integer or a numeric field to a float
+TO_NUMBER(expr,size,precision) | Convert a text, an integer or a numeric field to a specific numeric format
+
+## Logical functions
+
+Function | Definition
+-------- | ----------
+CASE(condition1,then1,...,[else]) | Group the data into sub-sets
+ISNULL(expr) | Expr is null logical function
+NOT(expr1, expr2) | Expr1 not equal to expr2 logical operator
+NULLIF(expr1, expr2) | Returns the first expression if the two expressions aren't equal or a null value if the two expressions are equal
+
+## Miscellaneous functions
+
+Function | Definition
+-------- | ----------
+EXISTS(expr) | Checks that a sub condition is matched. The EXISTS condition is considered "to be met" if the subquery returns at least one row.
+LPAD(text,length,text) | Left pad with the text the text to specified length
+LTRIM(text,[character]) | Remove leading characters from the text. By default, the character to remove is a whitespace
+RPAD(text,length,text) | Right pad with the text the text to specified length
+RTRIM(text,[character]) | Remove trailing characters from the text. By default, the character to remove is a whitespace
+TRIM(text, [character]) | Remove leading and trailing characters from the text. By default, the character to remove is a whitespace
