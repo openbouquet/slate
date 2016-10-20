@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>OPen Bouquet API Reference</title>
+    <title>Open Bouquet API Reference</title>
 
     <style>
       .highlight table td { padding: 5px; }
@@ -211,42 +211,6 @@ In that mode the API will output some simple HTML that allows interaction throug
     <span class="s2">"http://yourserverdomain/v4.2/analytics"</span>
 </code></pre>
 
-<blockquote>
-<p>The above command returns JSON structured like this:</p>
-</blockquote>
-<pre class="highlight json"><code><span class="p">{</span><span class="w">
-</span><span class="nt">"parent"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Root"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list all your available content, organize by Projects and Bookmarks"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FOLDER"</span><span class="w">
-</span><span class="p">},</span><span class="w">
-</span><span class="nt">"children"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-</span><span class="p">{</span><span class="w">
-</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Projects"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list all your Projects"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"parentRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/PROJECTS"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FOLDER"</span><span class="w">
-</span><span class="p">},</span><span class="w">
-</span><span class="p">{</span><span class="w">
-</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Shared Bookmarks"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list all the bookmarks shared with you"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"parentRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/SHARED"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FOLDER"</span><span class="w">
-</span><span class="p">},</span><span class="w">
-</span><span class="p">{</span><span class="w">
-</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"My Bookmarks"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list all your bookmarks"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"parentRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/MYBOOKMARKS"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FOLDER"</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span><span class="p">]</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre>
-
 <p>This method retrieves all the content available for the authenticated user.</p>
 
 <aside class="notice">
@@ -341,7 +305,77 @@ Remember to provide a valid OAuth TOKEN!
 
 <h3 id="reply">Reply</h3>
 
-<p>The reply has the following structure:</p>
+<blockquote>
+<p>This is the reply for content at the root:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+</span><span class="nt">"parent"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Root"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list all your available content, organize by Projects and Bookmarks"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FOLDER"</span><span class="w">
+</span><span class="p">},</span><span class="w">
+</span><span class="nt">"children"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+</span><span class="p">{</span><span class="w">
+</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Projects"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list all your Projects"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"parentRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/PROJECTS"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FOLDER"</span><span class="w">
+</span><span class="p">},</span><span class="w">
+</span><span class="p">{</span><span class="w">
+</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Shared Bookmarks"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list all the bookmarks shared with you"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"parentRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/SHARED"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FOLDER"</span><span class="w">
+</span><span class="p">},</span><span class="w">
+</span><span class="p">{</span><span class="w">
+</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"My Bookmarks"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list all your bookmarks"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"parentRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/MYBOOKMARKS"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FOLDER"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p>The reply has the following structure.</p>
+
+<p>The <code class="prettyprint">parent</code> node describe the current location of the <code class="prettyprint">parent</code> parameter. For instance you could use it to browse upward, because it provides also <code class="prettyprint">parentRef</code> property (unless it is the root folder).</p>
+
+<p>The <code class="prettyprint">children</code> node is an array of nodes, and it is the content of the <code class="prettyprint">parent</code> node.</p>
+
+<p>Each node has the same structure:</p>
+
+<table><thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>name</td>
+<td></td>
+</tr>
+<tr>
+<td>description</td>
+<td></td>
+</tr>
+<tr>
+<td>parentRef</td>
+<td></td>
+</tr>
+<tr>
+<td>selfRef</td>
+<td></td>
+</tr>
+<tr>
+<td>type</td>
+<td></td>
+</tr>
+</tbody></table>
 
 <h2 id="query-a-bookmark-or-domain">Query a Bookmark or Domain</h2>
 
@@ -473,6 +507,11 @@ If it is a Bookmark, it will use the bookmark default analysis. In case of a Dom
 <td>false</td>
 <td></td>
 </tr>
+<tr>
+<td>state</td>
+<td>false</td>
+<td></td>
+</tr>
 </tbody></table>
 
 <h4 id="default-query">Default Query</h4>
@@ -481,7 +520,40 @@ If it is a Bookmark, it will use the bookmark default analysis. In case of a Dom
 
 <p>In case of a Bookmark reference, it will compute the Bookmark pre-defined analysis, with default settings.</p>
 
+<h4 id="state">State</h4>
+
+<p>If a stateID is provided, the API will try to load the State.</p>
+
+<h4 id="period-amp-timeframe">Period &amp; TimeFrame</h4>
+
+<p>The <code class="prettyprint">period</code> parameter defines the expression to use as the main Period for filtering on <code class="prettyprint">timeframe</code> and also to perform time-over-time comparison (see <a href="#compareto">CompareTo</a>).</p>
+
+<p>Also once you defined the <code class="prettyprint">period</code>, you can then use the <code class="prettyprint">__PERIOD</code> alias in the expression you are using for other parameters (for example <code class="prettyprint">groupby</code> or <code class="prettyprint">orderby</code>; it also work with the <a href="#view-a-bookmark-or-domain">/view API</a> as <code class="prettyprint">x</code>, <code class="prettyprint">y</code>, <code class="prettyprint">color</code>, &hellip; parameters). Note that you can use the alias <code class="prettyprint">__PERIOD</code> also in expression, for example: <code class="prettyprint">MONTHLY(&#39;__PERIOD&#39;)</code> to extract the first day of month of the date - if you want to aggregate results by month for instance.</p>
+
+<p>The <code class="prettyprint">timeframe</code> parameter is an array of values that you can use to filter the data on the <code class="prettyprint">period</code> value.
+If the <code class="prettyprint">timeframe</code> is not defined, even if the <code class="prettyprint">period</code> is defined, no filter is applied.
+If the <code class="prettyprint">timeframe</code> is defined, you must also define the <code class="prettyprint">period</code> (unless there is a default value available for it)</p>
+
+<p>There are three ways to define the <code class="prettyprint">timeframe</code>: 
+ * using explicit date range
+ * using an alias
+ * using a expression</p>
+
+<h5 id="timeframe-defined-using-explicit-date-range">TimeFrame defined using explicit date range</h5>
+
+<h5 id="timeframe-defined-using-an-alias">TimeFrame defined using an alias</h5>
+
+<h5 id="timeframe-defined-using-an-expression">TimeFrame defined using an expression</h5>
+
+<p>Note that this is a shorthand to simplify date filtering. You can also use the <code class="prettyprint">filters</code> parameter if you need to address some special cases.</p>
+
+<h4 id="compareto">CompareTo</h4>
+
 <h4 id="expressions">Expressions</h4>
+
+<p>The expressions are all evaluated in the current Domain scope (if the reference is a Bookmark, it is its domain).</p>
+
+<p>See the <a href="#expression-reference-guide">&ldquo;Expression Reference Guide&rdquo;</a> for details about how to create expressions.</p>
 
 <h3 id="reply">Reply</h3>
 
@@ -610,6 +682,773 @@ Remember to provide a valid OAuth TOKEN!
 <h1 id="management-api">Management API</h1>
 
 <p>This is a set of APIs to manage the OB server.</p>
+
+<h1 id="expression-reference-guide">Expression Reference Guide</h1>
+
+<p>This part describes how to write Expression and the available Functions to use.</p>
+
+<h2 id="constant-expression">Constant Expression</h2>
+
+<table><thead>
+<tr>
+<th>Constant type</th>
+<th>Example</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Numerical</td>
+<td>123.4</td>
+</tr>
+<tr>
+<td>Text</td>
+<td>&ldquo;Hello world&rdquo;</td>
+</tr>
+<tr>
+<td>Date</td>
+<td>DATE(&ldquo;DD/MM/YY&rdquo;)<br><i>note that you cannot change the date format when defining a constant</i></td>
+</tr>
+</tbody></table>
+
+<h2 id="referencing-objects">Referencing objects</h2>
+
+<p>Expression allows you to create references to a model object and to perform operations on their underlying values.</p>
+
+<p>To create a reference, you can use two syntax:</p>
+
+<ul>
+<li>Shortand</li>
+<li>Explicit</li>
+</ul>
+
+<p>Important: The resolution of an object identifier is case sensitive, and the identifier must be enclosed in simple quotes.</p>
+
+<table><thead>
+<tr>
+<th>Object type</th>
+<th>Shorthand</th>
+<th>Explicit</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Column</td>
+<td>#&lsquo;CUSTOMER_NAME&rsquo;</td>
+<td>[col:&#39;CUSTOMER_NAME&rsquo;] or @col:&#39;CUSTOMER_NAME&rsquo;</td>
+</tr>
+<tr>
+<td>Object by name<br>(Domain, Dimension, Metric or Relation)</td>
+<td>&#39;Name&rsquo;</td>
+<td>[dimension:&#39;Name&rsquo;] or @metric:&#39;Name&rsquo;<br><i>note: using the explicit form can be useful to resolve name collision</td>
+</tr>
+<tr>
+<td>Object by ID<br>(Domain, Dimension, Metric or Relation)</td>
+<td>@&#39;someID&rsquo;</td>
+<td>[id:&#39;someID&rsquo;]</td>
+</tr>
+<tr>
+<td>Parameter</td>
+<td>$&#39;M0&rsquo;</td>
+<td>[param:&#39;M0&rsquo;]</td>
+</tr>
+</tbody></table>
+
+<h2 id="composing-expression">Composing Expression</h2>
+
+<p>If an expression is an Object, it is usually possible to compose it with expression valid in the target object scope.</p>
+
+<p>For example if the scope is the <code class="prettyprint">Sales</code> domain, you can create the following expression to resolve the country of the customer: </p>
+
+<p><code class="prettyprint">&#39;customer&#39;.&#39;address&#39;.&#39;country&#39;.&#39;name&#39;</code></p>
+
+<p>You can also use the special expression <code class="prettyprint">$self</code> to reference the domain itself, for example: </p>
+
+<p><code class="prettyprint">&#39;customer&#39;.&#39;address&#39;</code></p>
+
+<h2 id="naming-expressions">Naming expressions</h2>
+
+<p>Since version 4.2.2, Bouquet server allows us to give a name to expressions. Just use the AS keyword in the expression editor:</p>
+
+<p>&#39;metric1&rsquo; + &#39;metric2&rsquo; AS &#39;sum_of_both_metrics&rsquo;</p>
+
+<p>This can be useful when using custom expressions to compute an analysis. The resulting column in the data-table will have the expression&rsquo;s name. Note however that if you define a dimension or a metric, the dimension or metric given name will take precedence over the expression&rsquo;s name.</p>
+
+<h2 id="operators">Operators</h2>
+
+<table><thead>
+<tr>
+<th>Operator</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>expr1 &#124;&#124; expr2</td>
+<td>Logical</td>
+<td>OR logical operator</td>
+</tr>
+<tr>
+<td>expr1 &amp;&amp; expr2</td>
+<td>Logical</td>
+<td>AND logical operator</td>
+</tr>
+<tr>
+<td>expr1 LIKE expr2</td>
+<td>Logical</td>
+<td>Search for a specified pattern in a column</td>
+</tr>
+<tr>
+<td>expr1 = expr2</td>
+<td>Comparison</td>
+<td>Checks if expr1 is equal to expr2</td>
+</tr>
+<tr>
+<td>expr1 &gt; expr2</td>
+<td>Comparison</td>
+<td>Greater comparator</td>
+</tr>
+<tr>
+<td>expr1 &gt;= expr2</td>
+<td>Comparison</td>
+<td>Greater or equal comparator</td>
+</tr>
+<tr>
+<td>expr1 &lt; expr2</td>
+<td>Comparison</td>
+<td>Less comparator</td>
+</tr>
+<tr>
+<td>expr1 &lt;= expr2</td>
+<td>Comparison</td>
+<td>Less or equal comparator</td>
+</tr>
+<tr>
+<td>expr1 != expr2</td>
+<td>Comparison</td>
+<td>Not equal comparator</td>
+</tr>
+<tr>
+<td>expr1 RLIKE expr2</td>
+<td>Comparison</td>
+<td>Executes a &ldquo;LIKE&rdquo; comparison using a regexp expression</td>
+</tr>
+<tr>
+<td>n1 % n2</td>
+<td>Math</td>
+<td>Modulo operator</td>
+</tr>
+<tr>
+<td>n1 + n2</td>
+<td>Math</td>
+<td>Addition operator</td>
+</tr>
+<tr>
+<td>n1 - n2</td>
+<td>Math</td>
+<td>Subtraction operator</td>
+</tr>
+<tr>
+<td>n1 *n2</td>
+<td>Math</td>
+<td>Multiplication operator</td>
+</tr>
+<tr>
+<td>n1 / n2</td>
+<td>Math</td>
+<td>Division operator</td>
+</tr>
+<tr>
+<td>n1 ** n2</td>
+<td>Math</td>
+<td>Exponential operator (n1 to n2th power)</td>
+</tr>
+</tbody></table>
+
+<h2 id="math-functions">Math functions</h2>
+
+<table><thead>
+<tr>
+<th>Function</th>
+<th>Definition</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>ABS(n)</td>
+<td>Absolute value of number</td>
+</tr>
+<tr>
+<td>ACOS(n)</td>
+<td>Arc cosine of n</td>
+</tr>
+<tr>
+<td>ASIN(n)</td>
+<td>Arc sine of n</td>
+</tr>
+<tr>
+<td>ATAN(n)</td>
+<td>Arc tangent of n</td>
+</tr>
+<tr>
+<td>COS(n)</td>
+<td>Cosine of n</td>
+</tr>
+<tr>
+<td>CEIL(n)</td>
+<td>Smallest integer value that is greater than or equal to a number.</td>
+</tr>
+<tr>
+<td>COSH(n)</td>
+<td>Hyperbolic cosine of n</td>
+</tr>
+<tr>
+<td>DEGREES(n)</td>
+<td>Argument converted to degrees of n</td>
+</tr>
+<tr>
+<td>EXP(n1,n2)</td>
+<td>Exponential (n1 to n2th power)</td>
+</tr>
+<tr>
+<td>FLOOR(n)</td>
+<td>Largest integer value that is less than or equal to a number.</td>
+</tr>
+<tr>
+<td>GREATEST(expr1, expr2, &hellip;)</td>
+<td>Greatest value in a list of expressions</td>
+</tr>
+<tr>
+<td>LEAST(expr1, expr2, &hellip;)</td>
+<td>Smallest value in a list of expressions</td>
+</tr>
+<tr>
+<td>LN(n)</td>
+<td>Natural Log of n, where n&gt;0</td>
+</tr>
+<tr>
+<td>LOG(n1,n2)</td>
+<td>Log of n1, base n2</td>
+</tr>
+<tr>
+<td>MINUS(n1,n2)</td>
+<td>Difference between n1 and n2</td>
+</tr>
+<tr>
+<td>PI()</td>
+<td>PI number of n</td>
+</tr>
+<tr>
+<td>POWER(n1,n2)</td>
+<td>n1 raised to the n2th power.</td>
+</tr>
+<tr>
+<td>RADIANS(n)</td>
+<td>Argument converted to radians of n</td>
+</tr>
+<tr>
+<td>RAND()</td>
+<td>Generate a random value</td>
+</tr>
+<tr>
+<td>ROUND(n,[p])</td>
+<td>Number n rounded to a given (optionnal) precision p. p can be negative, to cause p digits left of the decimal point of the value n to become zero.</td>
+</tr>
+<tr>
+<td>SIGN(n)</td>
+<td>Sign of a number (-1 or 1)</td>
+</tr>
+<tr>
+<td>SIN(n)</td>
+<td>Sine of n</td>
+</tr>
+<tr>
+<td>SINH(n)</td>
+<td>Hyperbolic Sine of n</td>
+</tr>
+<tr>
+<td>SQRT(n)</td>
+<td>Square root of n</td>
+</tr>
+<tr>
+<td>SUBSTRACTION(n1,n2)</td>
+<td>Substract n2 from n1</td>
+</tr>
+<tr>
+<td>TAN(n)</td>
+<td>Tangent of n</td>
+</tr>
+<tr>
+<td>TANH(n)</td>
+<td>Hyperbolic tangent of n</td>
+</tr>
+<tr>
+<td>TRUNCATE(n1,n2)</td>
+<td>n1 truncated to n2 decimal places.</td>
+</tr>
+</tbody></table>
+
+<h2 id="date-functions">Date functions</h2>
+
+<table><thead>
+<tr>
+<th>Function</th>
+<th>Definition</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>ADD_MONTHS(date,num_months)</td>
+<td>Returns date + num_months (can be negative)</td>
+</tr>
+<tr>
+<td>CURRENT_DATE()</td>
+<td>Get the current system date</td>
+</tr>
+<tr>
+<td>CURRENT_TIMESTAMP()</td>
+<td>Get the current system timestamp</td>
+</tr>
+<tr>
+<td>DAILY(timestamp)</td>
+<td>convert the timestamp into a date</td>
+</tr>
+<tr>
+<td>DATE_ADD(date1,number,period)</td>
+<td>Add to date1 the number of period (unit in SECOND,MINUTE,HOUR,DAY,MONTH,YEAR)<br>Note: Adding two dates is not possible</td>
+</tr>
+<tr>
+<td>DATE_INTERVAL(date1,date2,period)</td>
+<td>Compute the difference btw date1 and date2 in a particular period (unit in SECOND,MINUTE,HOUR,DAY)</td>
+</tr>
+<tr>
+<td>DATE_SUB(date1,date2)</td>
+<td>Remove date2 from date1</td>
+</tr>
+<tr>
+<td>DATE_SUB(date1,number,period)</td>
+<td>Remove from date1 the number of period (unit in SECOND,MINUTE,HOUR,DAY,MONTH,YEAR)</td>
+</tr>
+<tr>
+<td>DATE_TRUNCATE(date,format)</td>
+<td>Truncate the date (it can be a Date or a Timestamp) depending on the format constant string:<br>if format=&ldquo;day&rdquo; then the result is the Date part of date (excluding the time)<br>if format=&ldquo;week&rdquo; then the result is the first day of the week containing date<br>if format=&ldquo;month&rdquo; then the result is the first day of the month containing date<br>if format=&ldquo;quarter&rdquo; then the result is the first day of the quarter containing date<br>if format=&ldquo;year&rdquo; then the result is the first day of the year containing date<br><br>Note: this is useful to perform weekly, monthly, quarterly or yearly analysis (you can also use the shortcut functions DAILY(), WEEKLY(), MONTHLY(), QUARTERLY() or YEARLY())</td>
+</tr>
+<tr>
+<td>DAY(date)</td>
+<td>Extract the day of the month from date</td>
+</tr>
+<tr>
+<td>DAY_OF_WEEK(date)</td>
+<td>extract the day of the week date, between 1 and 7. Day 1 is sunday</td>
+</tr>
+<tr>
+<td>DAY_OF_YEAR(date)</td>
+<td>Extract the day of the year from the date</td>
+</tr>
+<tr>
+<td>FROM_EPOCH(n)</td>
+<td>Return a timestamp based on a numeric field representing the number of seconds since 01-01-1970.</td>
+</tr>
+<tr>
+<td>HOUR(date)</td>
+<td>Extract the hour from date</td>
+</tr>
+<tr>
+<td>MINUTE(date)</td>
+<td>Extract minutes from date</td>
+</tr>
+<tr>
+<td>MONTHLY(date or timestamp)</td>
+<td>return the first day of month from the date</td>
+</tr>
+<tr>
+<td>MONTHS(date)</td>
+<td>Extract the month in the year from date</td>
+</tr>
+<tr>
+<td>MONTHS_BETWEEN(date1,date2)</td>
+<td>Number of months between d1 and d2</td>
+</tr>
+<tr>
+<td>QUARTERLY(date or timestamp)</td>
+<td>return the first day of the quarter from the date</td>
+</tr>
+<tr>
+<td>SECOND(date)</td>
+<td>Extract seconds from date</td>
+</tr>
+<tr>
+<td>TO_DATE(timestamp)</td>
+<td>Convert a timestamp to a date</td>
+</tr>
+<tr>
+<td>TO_DATE(text, format)</td>
+<td>Convert a text to a date with a specific format</td>
+</tr>
+<tr>
+<td>TO_EPOCH(timestamp)</td>
+<td>Return a numeric value based on a timestamp field representing the number of seconds since 01-01-1970.</td>
+</tr>
+<tr>
+<td>TO_TIMESTAMP(date)</td>
+<td>Convert a timestamp to a date</td>
+</tr>
+<tr>
+<td>TO_TIMESTAMP(text, format)</td>
+<td>Convert a text to a timestamp with a specific format</td>
+</tr>
+<tr>
+<td>WEEKLY(date or timestamp)</td>
+<td>return the first day of the week from the date</td>
+</tr>
+<tr>
+<td>YEAR(date)</td>
+<td>Extract the year from date</td>
+</tr>
+<tr>
+<td>YEARLY(date or timestamp)</td>
+<td>return the first day of the year from the date</td>
+</tr>
+</tbody></table>
+
+<h2 id="text-functions">Text functions</h2>
+
+<table><thead>
+<tr>
+<th>Function</th>
+<th>Definition</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>CONCAT(s1,s2)</td>
+<td>Concatenate Text1 and text2</td>
+</tr>
+<tr>
+<td>LENGTH(s)</td>
+<td>Length of a text</td>
+</tr>
+<tr>
+<td>LOWER(s)</td>
+<td>Lower case text</td>
+</tr>
+<tr>
+<td>MD5(string)</td>
+<td>Calculates the MD5 hash of string, returning the result in hexadecimal</td>
+</tr>
+<tr>
+<td>POSITION(s1, s2)</td>
+<td>Returns the position of s2 within s1 starting from index 1, 0 otherwise</td>
+</tr>
+<tr>
+<td>REPLACE(text, from, to)</td>
+<td>Replace within the first text from text with to text</td>
+</tr>
+<tr>
+<td>REVERSE(string)</td>
+<td>Returns reversed string</td>
+</tr>
+<tr>
+<td>SPLIT_PART(string, delimiter, position)</td>
+<td>Splits string on delimiter and return the given field (counting from one)</td>
+</tr>
+<tr>
+<td>SUBSTRING(text,n1 [,n2])</td>
+<td>Substring of s, starting from index n1 optionally ending at index n2</td>
+</tr>
+<tr>
+<td>TRANSLATE(text, from, to)</td>
+<td>Replace within the first text each single char specified in from text withto the corresponding char specified in to</td>
+</tr>
+<tr>
+<td>TO_CHAR(number)</td>
+<td>Convert a number to a text</td>
+</tr>
+<tr>
+<td>TO_CHAR(date or timestamp, format)</td>
+<td>Convert a date or timestamp to a text with a specific format. You can use any format supported by the underlying data-source. Check next § for a quick refernce guide</td>
+</tr>
+<tr>
+<td>UPPER(s)</td>
+<td>Uppercase text</td>
+</tr>
+</tbody></table>
+
+<h3 id="date-formatting">Date Formatting</h3>
+
+<p>This is just a quick reference guide for usual formats. You can use any format supported by the underlying data-source. </p>
+
+<table><thead>
+<tr>
+<th>Format</th>
+<th>Definition</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>YYYY</td>
+<td>4 digits year, e.g. 2016</td>
+</tr>
+<tr>
+<td>YYY</td>
+<td>3 digits year, e.g. 016</td>
+</tr>
+<tr>
+<td>YY</td>
+<td>2 digits year, e.g. 16</td>
+</tr>
+<tr>
+<td>Y</td>
+<td>1 digit year, e.g. 6</td>
+</tr>
+<tr>
+<td>MONTH</td>
+<td>Month name (uppercase)</td>
+</tr>
+<tr>
+<td>MON</td>
+<td>abbreviated month name</td>
+</tr>
+<tr>
+<td>MM</td>
+<td>month number (01-12)</td>
+</tr>
+<tr>
+<td>DAY</td>
+<td>name of the day</td>
+</tr>
+<tr>
+<td>DDD</td>
+<td>Day of the year (1-366)</td>
+</tr>
+<tr>
+<td>DD</td>
+<td>Day of the month (1-31)</td>
+</tr>
+<tr>
+<td>D</td>
+<td>Day of week (1-7)</td>
+</tr>
+</tbody></table>
+
+<h2 id="regex-functions">Regex functions</h2>
+
+<table><thead>
+<tr>
+<th>Function</th>
+<th>Available</th>
+<th>Definition</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>REGEXP_COUNT(string, regexp)</td>
+<td>RedShift only</td>
+<td>Counts the number of occurrence of the regexp within the string</td>
+</tr>
+<tr>
+<td>REGEXP_INSTR(string, regexp)</td>
+<td>RedShift &amp; Oracle</td>
+<td>Returns the position of the first occurrence found of the searched regexp within the string</td>
+</tr>
+<tr>
+<td>REGEXP_REPLACE(string, regexp, replace)</td>
+<td>All but MySQL</td>
+<td>Replace substring matching a POSIX regular expression</td>
+</tr>
+<tr>
+<td>REGEXP_SUBSTR(string, regexp)</td>
+<td>All but MySQL</td>
+<td>Extract substring matching POSIX regular expression</td>
+</tr>
+</tbody></table>
+
+<h2 id="json-functions">JSON functions</h2>
+
+<p>These functions are only supported by the Redshift plugin.</p>
+
+<table><thead>
+<tr>
+<th>Function</th>
+<th>Definition</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>JSON_ARRAY_LENGTH (&#39;json string&rsquo;)</td>
+<td>Returns the number of elements in the outer array of a JSON string</td>
+</tr>
+<tr>
+<td>JSON_EXTRACT_ARRAY_ELEMENT_TEXT(&#39;json string&rsquo;, pos)</td>
+<td>Returns a JSON array element in the outermost array of a JSON string, using a zero-based index.</td>
+</tr>
+<tr>
+<td>JSON_EXTRACT_PATH_TEXT(json string&rsquo;, &#39;path_elem&rsquo; [,&#39;path_elem&rsquo;[, …]])</td>
+<td>Returns the value for the key:value pair referenced by a series of path elements in a JSON string. The JSON path can be nested up to five levels deep.</td>
+</tr>
+</tbody></table>
+
+<h2 id="aggregate-functions">Aggregate functions</h2>
+
+<table><thead>
+<tr>
+<th>Function</th>
+<th>Definition</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>COUNT(*) or COUNT([DISTINCT] expr)</td>
+<td>Count the no of rows returned or no of rows returned by expr</td>
+</tr>
+<tr>
+<td>AVG([DISTINCT] value expr)</td>
+<td>Average value of ‘n&rsquo; ignoring NULL</td>
+</tr>
+<tr>
+<td>DISTINCT(expr)</td>
+<td>Get distinct values returned by expr</td>
+</tr>
+<tr>
+<td>MAX(value expr)</td>
+<td>Maximum value within an expression</td>
+</tr>
+<tr>
+<td>MEDIAN([DISTINCT] n)</td>
+<td>Median of n, ignoring NULLs.</td>
+</tr>
+<tr>
+<td>MIN(value expr)</td>
+<td>Minimum value within an expression</td>
+</tr>
+<tr>
+<td>SUM(value expr)</td>
+<td>Sum an expression</td>
+</tr>
+</tbody></table>
+
+<p>VARIANCE([DISTINCT] n) | Variance of n, ignoring NULLs</p>
+
+<h3 id="windowing-analytics-functions">Windowing / Analytics functions</h3>
+
+<p>You can apply an operator on a group of rows using the windowing syntax:</p>
+
+<ul>
+<li>Use the partition expression to partition the query result set into groups based on one or more value expression. If you omit this clause, then the function treats all rows of the query result set as a single group</li>
+<li>Use the order by expression to specify how data is ordered within a partition</li>
+</ul>
+
+<table><thead>
+<tr>
+<th>Function</th>
+<th>Definition</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>AVG([DISTINCT] value expr, [partition expr], [order by expr])</td>
+<td>Average value of ‘n&rsquo; ignoring NULL</td>
+</tr>
+<tr>
+<td>DISTINCT(expr)</td>
+<td>Get distinct values returned by expr</td>
+</tr>
+<tr>
+<td>MAX(value expr, [partition expr], [order by expr])</td>
+<td>Maximum value within an expression</td>
+</tr>
+<tr>
+<td>MEDIAN([DISTINCT] n)</td>
+<td>Median of n, ignoring NULLs.</td>
+</tr>
+<tr>
+<td>MIN(value expr, [partition expr], [order by expr])</td>
+<td>Minimum value within an expression</td>
+</tr>
+<tr>
+<td>RANK([partition expr], [order by expr])</td>
+<td>Returns the rank of a value in apartition expression. Same values within a partition have the same rank and the partition can be ordered</td>
+</tr>
+<tr>
+<td>ROW_NUMBER([partition expr], [order by expr])</td>
+<td>Returns a number to each row to which it is applied in a partition expression. The number returned is unique within its partition and the partition can be ordered</td>
+</tr>
+<tr>
+<td>SUM(value expr, [partition expr], [order by expr])</td>
+<td>Sum an expression</td>
+</tr>
+</tbody></table>
+
+<h2 id="numeric-functions">Numeric functions</h2>
+
+<table><thead>
+<tr>
+<th>Function</th>
+<th>Definition</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>TO_INTEGER(expr)</td>
+<td>Convert a text, or a numeric field to an integer</td>
+</tr>
+<tr>
+<td>TO_NUMBER(expr)</td>
+<td>Convert a text, an integer or a numeric field to a float</td>
+</tr>
+<tr>
+<td>TO_NUMBER(expr,size,precision)</td>
+<td>Convert a text, an integer or a numeric field to a specific numeric format</td>
+</tr>
+</tbody></table>
+
+<h2 id="logical-functions">Logical functions</h2>
+
+<table><thead>
+<tr>
+<th>Function</th>
+<th>Definition</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>CASE(condition1,then1,&hellip;,[else])</td>
+<td>Group the data into sub-sets</td>
+</tr>
+<tr>
+<td>ISNULL(expr)</td>
+<td>Expr is null logical function</td>
+</tr>
+<tr>
+<td>NOT(expr1, expr2)</td>
+<td>Expr1 not equal to expr2 logical operator</td>
+</tr>
+<tr>
+<td>NULLIF(expr1, expr2)</td>
+<td>Returns the first expression if the two expressions aren&rsquo;t equal or a null value if the two expressions are equal</td>
+</tr>
+</tbody></table>
+
+<h2 id="miscellaneous-functions">Miscellaneous functions</h2>
+
+<table><thead>
+<tr>
+<th>Function</th>
+<th>Definition</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>EXISTS(expr)</td>
+<td>Checks that a sub condition is matched. The EXISTS condition is considered &ldquo;to be met&rdquo; if the subquery returns at least one row.</td>
+</tr>
+<tr>
+<td>LPAD(text,length,text)</td>
+<td>Left pad with the text the text to specified length</td>
+</tr>
+<tr>
+<td>LTRIM(text,[character])</td>
+<td>Remove leading characters from the text. By default, the character to remove is a whitespace</td>
+</tr>
+<tr>
+<td>RPAD(text,length,text)</td>
+<td>Right pad with the text the text to specified length</td>
+</tr>
+<tr>
+<td>RTRIM(text,[character])</td>
+<td>Remove trailing characters from the text. By default, the character to remove is a whitespace</td>
+</tr>
+<tr>
+<td>TRIM(text, [character])</td>
+<td>Remove leading and trailing characters from the text. By default, the character to remove is a whitespace</td>
+</tr>
+</tbody></table>
 
           <h1 id="errors">Errors</h1>
 
