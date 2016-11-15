@@ -490,27 +490,27 @@ If it is a Bookmark, it will use the bookmark default analysis. In case of a Dom
 <tr>
 <td>data</td>
 <td>false</td>
-<td></td>
+<td>This parameter defines how to layout the data output. You can use it in conjunction with style and envelope to further customize the reply. See the <a href="#supported-data-layouts">Supported Data Layouts</a> for up to date information.</td>
 </tr>
 <tr>
 <td>style</td>
 <td>false</td>
-<td></td>
+<td>This parameter defines the reply style. The style can modify the response type in order to get a HTML version of the reply. It can also modify the content of the JSON reply by altering the way it references objects. If <code class="prettyprint">style=HUMAN</code> the API will use object names, so you can read and easily understand the output; but on the other side those outputs are fragile to name change so you cannot use them to build an application for instance. If you need the references to be immutable, you need to use <code class="prettyprint">style=ROBOT</code>; but then the output is going to be difficult to read. Note that you can switch between <code class="prettyprint">HUMAN</code> and <code class="prettyprint">ROBOT</code> easily, only the references are modified.</td>
 </tr>
 <tr>
 <td>envelope</td>
 <td>false</td>
-<td></td>
+<td>This parameter defines the content of the reply. You can use it to further customize what information you need, from a full reply including the explicit query as it is interpreted by the API, reply meta-information, header and data; or you can just ask for the data. See <a href="#style-parameter">Style Parameter</a> for details.</td>
 </tr>
 <tr>
 <td>timeout</td>
 <td>false</td>
-<td></td>
+<td>The timeout is in milliseconds. If provided the request execution will be interrupted if exceeding provided timeout. In that case the API will return an ComputingInProgressAPIException. Note that the execution will continue server side, you are only interrupting the request. You can run the same request again (with or without timeout) in order to get the reply (each request is actually pooled, so performing multiple request is actually running the query only once). Note also that the error message contains a QueryID that identifies running query. You can use the /status/QueryID API in order to get information regarding the query (see <a href="#query-status">/status API</a>) or cancel the execution.</td>
 </tr>
 <tr>
 <td>state</td>
 <td>false</td>
-<td></td>
+<td>The state parameter, if provided, is used to apply the state configuration to the current domain/bookmark. It will override any other settings. You can copy an application state - it will compute the corresponding query. Note however that an application can store custom information and do additional computation, tht won&rsquo;t be supported by the API.</td>
 </tr>
 </tbody></table>
 
@@ -559,7 +559,7 @@ If the <code class="prettyprint">timeframe</code> is defined, you must also defi
 
 <h4 id="table-header">Table Header</h4>
 
-<h4 id="table-layout">Table layout</h4>
+<h4 id="supported-data-layouts">Supported Data Layouts</h4>
 
 <p>The <code class="prettyprint">data</code> parameter allows to select the output layout.</p>
 
@@ -570,26 +570,32 @@ If the <code class="prettyprint">timeframe</code> is defined, you must also defi
 </tr>
 </thead><tbody>
 <tr>
-<td><code class="prettyprint">table</code></td>
+<td><code class="prettyprint">TABLE</code></td>
 <td>return a matrix, that is an array of row array. A row is an array cell values.</td>
 </tr>
 <tr>
-<td><code class="prettyprint">records</code></td>
+<td><code class="prettyprint">RECORDS</code></td>
 <td>return the table as an array of records. Each row is a record of the form <code class="prettyprint">{&quot;columnName&quot;:value,...}</code></td>
 </tr>
 <tr>
-<td><code class="prettyprint">transpose</code></td>
+<td><code class="prettyprint">TRANSPOSE</code></td>
 <td>if the query has multiple metrics, transpose the table to create a row for each record/metric. It adds two additional columns <code class="prettyprint">metric</code> and <code class="prettyprint">value</code></td>
 </tr>
 <tr>
-<td><code class="prettyprint">legacy</code></td>
-<td>return a JSON compatible with legacy API - do not use!</td>
-</tr>
-<tr>
-<td><code class="prettyprint">sql</code></td>
+<td><code class="prettyprint">SQL</code></td>
 <td>additionally you can ask to retrieve the SQL code for the Query instead of the results</td>
 </tr>
+<tr>
+<td><code class="prettyprint">LEGACY</code></td>
+<td>return a JSON compatible with legacy API - this is for internal use only, you should not use it, it will be deprecated soon.</td>
+</tr>
 </tbody></table>
+
+<p>Note that you can play with the <code class="prettyprint">envelope</code> parameter in order to customize further the reply. For instance if you want to get only the data as the reply, you can add <code class="prettyprint">envelope=DATA</code> parameter. If <code class="prettyprint">data=SQL</code> is used, this will return just the SQL statement. See <a href="#envelope-parameter">Envelope Parameter</a> for details.</p>
+
+<h2 id="query-status">Query Status</h2>
+
+<p>This method provides the status of a running query.</p>
 
 <h2 id="export-a-bookmark-or-domain">Export a Bookmark or Domain</h2>
 
@@ -673,7 +679,51 @@ Remember to provide a valid OAuth TOKEN!
 
 <h3 id="style-parameter">Style parameter</h3>
 
+<p>This parameter defines the reply style.</p>
+
+<table><thead>
+<tr>
+<th>Style&nbsp;Value</th>
+<th>Table Layout</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code class="prettyprint">HUMAN</code></td>
+<td>When the <code class="prettyprint">style</code> parameter is set to <code class="prettyprint">HUMAN</code>, the API will use name as object reference. This allows the reply to be easily readable by human. The drawback is that the information is fragile to name change, so you shouldn&rsquo;t use it statically in your apps.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">ROBOT</code></td>
+<td>When the <code class="prettyprint">style</code> parameter is set to <code class="prettyprint">ROBOT</code>, the API will use immutable identifier as object reference. That makes the information robust to name change, but you may have hard time deciphering it (unless you are NEO).</td>
+</tr>
+<tr>
+<td><code class="prettyprint">HTML</code></td>
+<td>This special style modify the output to be a static HTML page, instead of the regular JSON data feed. This is mainly used for exploring the API in a friendly way (think of it as a custom swagger UI). The HTML pages are actually good old forms that you can use also to input parameters and quickly see the result. It also provides some additional shortcut links to related queries you may need.</td>
+</tr>
+</tbody></table>
+
 <h3 id="envelope-parameter">Envelope parameter</h3>
+
+<p>This parameter defines the content of the reply. You can use it to further customize what information you need, from a full reply including the explicit query as it is interpreted by the API, reply meta-information, header and data; or you can just ask for the data.</p>
+
+<table><thead>
+<tr>
+<th>Envelope&nbsp;Value</th>
+<th>Table Layout</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code class="prettyprint">ALL</code></td>
+<td>This the default. It will return the full reply, including the original query as evaluated by the API (so it can be different than the query you send, because it will list all implicit settings and override), and the complete result including meta informations, table header and the data.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">RESULT</code></td>
+<td>This setting will only return the result part</td>
+</tr>
+<tr>
+<td><code class="prettyprint">DATA</code></td>
+<td>This setting will only return the data with no additional information.</td>
+</tr>
+</tbody></table>
 
 <h1 id="model-api">Model API</h1>
 
@@ -709,6 +759,10 @@ Remember to provide a valid OAuth TOKEN!
 </tr>
 </tbody></table>
 
+<aside class="success">
+String constants are enclose using <b>double quotes</b>, be careful!
+</aside>
+
 <h2 id="referencing-objects">Referencing objects</h2>
 
 <p>Expression allows you to create references to a model object and to perform operations on their underlying values.</p>
@@ -720,7 +774,35 @@ Remember to provide a valid OAuth TOKEN!
 <li>Explicit</li>
 </ul>
 
+<blockquote>
+<p>examples of referencing objects using identifiers</p>
+</blockquote>
+<pre class="highlight plaintext"><code>
+// always enclose the identifier in single-quotes
+
+// using a named identifier 
+// without specifying the object type, 
+// so the scope will manage the order
+// in case of conflicts
+'this is a identifier name'
+
+// using an ID
+@'someID'
+
+// using a typed name, 
+// in case of collision
+[dimension:'this is a dimension']
+
+// using a typed ID 
+// only the ID is enclosed, not the type
+@bookmark:'someBookmarkID'
+</code></pre>
+
 <p>Important: The resolution of an object identifier is case sensitive, and the identifier must be enclosed in simple quotes.</p>
+
+<aside class="success">
+Identifiers must be enclosed between <b>single quotes</b>, be careful!
+</aside>
 
 <table><thead>
 <tr>
