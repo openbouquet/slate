@@ -269,11 +269,11 @@ offset | false |
 maxRsults | false | 
 startIndex | false | 
 lazy | false | 
-data | false | 
-style | false | 
-envelope | false | 
-timeout | false | 
-state | false |
+data | false | This parameter defines how to layout the data output. You can use it in conjunction with style and envelope to further customize the reply. See the [Supported Data Layouts](#supported-data-layouts) for up to date information.
+style | false | This parameter defines the reply style. The style can modify the response type in order to get a HTML version of the reply. It can also modify the content of the JSON reply by altering the way it references objects. If `style=HUMAN` the API will use object names, so you can read and easily understand the output; but on the other side those outputs are fragile to name change so you cannot use them to build an application for instance. If you need the references to be immutable, you need to use `style=ROBOT`; but then the output is going to be difficult to read. Note that you can switch between `HUMAN` and `ROBOT` easily, only the references are modified.
+envelope | false | This parameter defines the content of the reply. You can use it to further customize what information you need, from a full reply including the explicit query as it is interpreted by the API, reply meta-information, header and data; or you can just ask for the data. See [Style Parameter](#style-parameter) for details.
+timeout | false | The timeout is in milliseconds. If provided the request execution will be interrupted if exceeding provided timeout. In that case the API will return an ComputingInProgressAPIException. Note that the execution will continue server side, you are only interrupting the request. You can run the same request again (with or without timeout) in order to get the reply (each request is actually pooled, so performing multiple request is actually running the query only once). Note also that the error message contains a QueryID that identifies running query. You can use the /status/QueryID API in order to get information regarding the query (see [/status API](#query-status)) or cancel the execution.
+state | false | The state parameter, if provided, is used to apply the state configuration to the current domain/bookmark. It will override any other settings. You can copy an application state - it will compute the corresponding query. Note however that an application can store custom information and do additional computation, tht won't be supported by the API.
 
 #### Default Query
 
@@ -320,17 +320,24 @@ See the ["Expression Reference Guide"](#expression-reference-guide) for details 
 
 #### Table Header
 
-#### Table layout
+#### Supported Data Layouts
 
 The `data` parameter allows to select the output layout.
 
 Data&nbsp;Value | Table Layout
 ---------- | ------------
-`table` | return a matrix, that is an array of row array. A row is an array cell values.
-`records` | return the table as an array of records. Each row is a record of the form `{"columnName":value,...}`
-`transpose` | if the query has multiple metrics, transpose the table to create a row for each record/metric. It adds two additional columns `metric` and `value`
-`legacy` | return a JSON compatible with legacy API - do not use!
-`sql` | additionally you can ask to retrieve the SQL code for the Query instead of the results
+`TABLE` | return a matrix, that is an array of row array. A row is an array cell values.
+`RECORDS` | return the table as an array of records. Each row is a record of the form `{"columnName":value,...}`
+`TRANSPOSE` | if the query has multiple metrics, transpose the table to create a row for each record/metric. It adds two additional columns `metric` and `value`
+`SQL` | additionally you can ask to retrieve the SQL code for the Query instead of the results
+`LEGACY` | return a JSON compatible with legacy API - this is for internal use only, you should not use it, it will be deprecated soon.
+
+Note that you can play with the `envelope` parameter in order to customize further the reply. For instance if you want to get only the data as the reply, you can add `envelope=DATA` parameter. If `data=SQL` is used, this will return just the SQL statement. See [Envelope Parameter](#envelope-parameter) for details.
+
+## Query Status
+
+This method provides the status of a running query.
+
 
 
 ## Export a Bookmark or Domain
@@ -375,7 +382,24 @@ envelope | false | defines the output content. Values can be ALL, RESULT, DATA
 
 ### Style parameter
 
+This parameter defines the reply style.
+
+Style&nbsp;Value | Table Layout
+---------- | ------------
+`HUMAN` | When the `style` parameter is set to `HUMAN`, the API will use name as object reference. This allows the reply to be easily readable by human. The drawback is that the information is fragile to name change, so you shouldn't use it statically in your apps.
+`ROBOT` | When the `style` parameter is set to `ROBOT`, the API will use immutable identifier as object reference. That makes the information robust to name change, but you may have hard time deciphering it (unless you are NEO).
+`HTML` | This special style modify the output to be a static HTML page, instead of the regular JSON data feed. This is mainly used for exploring the API in a friendly way (think of it as a custom swagger UI). The HTML pages are actually good old forms that you can use also to input parameters and quickly see the result. It also provides some additional shortcut links to related queries you may need.
+
 ### Envelope parameter
+
+This parameter defines the content of the reply. You can use it to further customize what information you need, from a full reply including the explicit query as it is interpreted by the API, reply meta-information, header and data; or you can just ask for the data.
+
+Envelope&nbsp;Value | Table Layout
+---------- | ------------
+`ALL`  | This the default. It will return the full reply, including the original query as evaluated by the API (so it can be different than the query you send, because it will list all implicit settings and override), and the complete result including meta informations, table header and the data.
+`RESULT` | This setting will only return the result part
+`DATA` | This setting will only return the data with no additional information.
+
 
 # Model API
 
@@ -397,6 +421,10 @@ Numerical   | 123.4
 Text   | "Hello world"
 Date   | DATE("DD/MM/YY")<br><i>note that you cannot change the date format when defining a constant</i>
 
+<aside class="success">
+String constants are enclose using <b>double quotes</b>, be careful!
+</aside>
+
 ## Referencing objects
 
 Expression allows you to create references to a model object and to perform operations on their underlying values.
@@ -406,7 +434,35 @@ To create a reference, you can use two syntax:
  * Shortand
  * Explicit
 
+>examples of referencing objects using identifiers
+
+```Shell
+
+// always enclose the identifier in single-quotes
+
+// using a named identifier 
+// without specifying the object type, 
+// so the scope will manage the order
+// in case of conflicts
+'this is a identifier name'
+
+// using an ID
+@'someID'
+
+// using a typed name, 
+// in case of collision
+[dimension:'this is a dimension']
+
+// using a typed ID 
+// only the ID is enclosed, not the type
+@bookmark:'someBookmarkID'
+```
+
 Important: The resolution of an object identifier is case sensitive, and the identifier must be enclosed in simple quotes.
+
+<aside class="success">
+Identifiers must be enclosed between <b>single quotes</b>, be careful!
+</aside>
 
 Object type | Shorthand | Explicit
 ----------- | --------- | --------
