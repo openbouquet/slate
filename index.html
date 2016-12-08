@@ -167,19 +167,33 @@ In all example you must replace <code>TOKEN</code> with the OAuth2 token.
 
 <p>This is a brief overview of the various concepts use by Bouquet to organize information.</p>
 
-<h2 id="project">Project</h2>
+<h2 id="projects">Projects</h2>
 
 <p>A Project is the top level object that organize data-source model. First a Project defines how to accessing the data-source, through a JDBC url and required authentication. Also the Project defines which part of the data-source will be made available through the API, by listing visible schemas.</p>
 
 <p>A Project also maintains a list of Domain.</p>
 
-<h2 id="domain">Domain</h2>
+<h2 id="domains">Domains</h2>
 
 <p>A Domain is associated with a table or view in the data-source. A Domain can be created dynamically by Open Bouquet, or explicitly by a user. Also a user can modify a dynamic Domain to make it permanent and persist the changes to the model.</p>
 
-<p>A Domain has Dimension and Metric attributes, which are dynamically mapped to the underlying data-source. A user can also modify an existing attribute, or create new ones. Those changes are persisted in the model.</p>
+<p>A Domain has Dimension and Metric attributes, which are dynamically mapped to the underlying data-source. A user can also modify any existing attribute, or create new ones. Those changes are then persisted in the model.</p>
 
-<h2 id="bookmark">Bookmark</h2>
+<h3 id="dimensions">Dimensions</h3>
+
+<p>A Dimension is any non-aggregated expression defined on the Domain.</p>
+
+<h3 id="metrics">Metrics</h3>
+
+<p>A Metric is any expression defined on the Domain. If the metric is an aggregated expression, it will be use as is. If it is not an aggregated expression, nor an analytics expression, it must be possible to apply an aggregation operator like SUM(), &hellip;</p>
+
+<p>Since a Metric can be any expression, it can contain conditional operator like CASE(), combined with an aggregation operator.</p>
+
+<h2 id="relations">Relations</h2>
+
+<p>A Relation defines how to join two Domains. It is defined by a left and right domain, and a predicate expression between the two. It also specify the relation cardinality.</p>
+
+<h2 id="bookmarks">Bookmarks</h2>
 
 <p>A Bookmark is a simple way to create a custom view on your model. From a Domain, you can define a default analysis, select filters, restrict the dimension and metrics usable for pivoting. Bookmarks are also organized on their own inside folders, independently from the Projects - so you can mix in the same folder Bookmarks from different Projects.</p>
 
@@ -205,6 +219,10 @@ In that mode the API will output some simple HTML that allows interaction throug
 </aside>
 
 <h2 id="list-available-content">List available content</h2>
+
+<blockquote>
+<p>This is a very simple example demonstrating how you can get the top level content in your account. In that example you don&rsquo;t need to provide any parameter.</p>
+</blockquote>
 <pre class="highlight shell"><code>curl -X GET 
     --header <span class="s1">'Accept: application/json'</span> 
     --header <span class="s1">'Authorization: Bearer TOKEN'</span>
@@ -267,6 +285,15 @@ Remember to provide a valid OAuth TOKEN!
 
 <h3 id="parent-parameter">Parent parameter</h3>
 
+<blockquote>
+<p>This is an example demonstrating how you can list the projects available in your account.</p>
+</blockquote>
+<pre class="highlight shell"><code>curl -X GET 
+    --header <span class="s1">'Accept: application/json'</span> 
+    --header <span class="s1">'Authorization: Bearer TOKEN'</span>
+    <span class="s2">"http://yourserverdomain/v4.2/analytics?parent=/PROJECTS"</span>
+</code></pre>
+
 <p>The parent parameter is a path. Each section of the path identify a valid container, using either its name or immutable ID.</p>
 
 <p>When browsing the content, you can always use a child <code class="prettyprint">selfRef</code> property to deep dive into it.</p>
@@ -306,38 +333,29 @@ Remember to provide a valid OAuth TOKEN!
 <h3 id="reply">Reply</h3>
 
 <blockquote>
-<p>This is the reply for content at the root:</p>
+<p>This is the reply from the previous API call for listing available projects</p>
 </blockquote>
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
 </span><span class="nt">"parent"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Root"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list all your available content, organize by Projects and Bookmarks"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FOLDER"</span><span class="w">
-</span><span class="p">},</span><span class="w">
-</span><span class="nt">"children"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-</span><span class="p">{</span><span class="w">
-</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Projects"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list all your Projects"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"parentRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/PROJECTS"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FOLDER"</span><span class="w">
-</span><span class="p">},</span><span class="w">
-</span><span class="p">{</span><span class="w">
-</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Shared Bookmarks"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list all the bookmarks shared with you"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"parentRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/SHARED"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FOLDER"</span><span class="w">
-</span><span class="p">},</span><span class="w">
-</span><span class="p">{</span><span class="w">
-</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"My Bookmarks"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list all your bookmarks"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"parentRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/MYBOOKMARKS"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FOLDER"</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span><span class="p">]</span><span class="w">
+    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Projects"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"list all your Projects"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"parentRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/PROJECTS"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FOLDER"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"link"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://yourserverdomain/v4.2/analytics?parent=/PROJECTS&amp;style=HUMAN&amp;visibility=ALL&amp;access_token=xxx"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"upLink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://yourserverdomain/v4.2/analytics?parent=/&amp;style=HUMAN&amp;visibility=ALL&amp;access_token=xxx"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+</span><span class="nt">"children"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w">
+    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"demo project"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"attributes"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"jdbc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jdbc:postgreql://databasehost:5432/demo"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nt">"parentRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/PROJECTS"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"selfRef"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/PROJECTS/demo project"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PROJECT"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"link"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://yourserverdomain/v4.2/analytics?parent=/PROJECTS/demo project&amp;style=HUMAN&amp;visibility=ALL&amp;access_token=xxx"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"objectLink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://yourserverdomain/v4.2/rs/projects/576002908294a27bac5a6946?style=HUMAN&amp;access_token=xxx"</span><span class="w">
+    </span><span class="p">}]</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
@@ -376,6 +394,14 @@ Remember to provide a valid OAuth TOKEN!
 <td></td>
 </tr>
 </tbody></table>
+
+<p>The <code class="prettyprint">link</code> provides you direct navigation into the content hierarchy. If the object type is a container, the link navigate to the content. If the object type cannot be navigated, it is a link to the associated query.</p>
+
+<p>The <code class="prettyprint">objectLink</code> provides a link to the detailed definition of the object. So it will redirect you to a different API depending on the object type. This API is actually the metadata management API that allows you to discover but also modify the model definition.</p>
+
+<aside class="notice">
+Navigation in your browser is easier if you install a json prettify plugin :)
+</aside>
 
 <h2 id="query-a-bookmark-or-domain">Query a Bookmark or Domain</h2>
 
@@ -430,37 +456,37 @@ If it is a Bookmark, it will use the bookmark default analysis. In case of a Dom
 <tr>
 <td>groupBy</td>
 <td>false</td>
-<td>This is a multi-valued parameter. Each value must be a valid expression in the Bookmark/Domain scope. See the Expression chapter for reference, but usually you will pass the dimension name you want to group the result by. Alternatively you can use a wildcard (*) as a value to replace the default reference settings. In case of Bookmark it will be replaced by the selected dimensions; in case of Domain it will be replaced by ALL dimensions (so use with care).</td>
+<td>A list of expression to group the result by. This is a multi-valued parameter. Note that the list can be empty, in that case the resulting dataset will be one row as maximum if you provide metrics to compute. Each value must be a valid expression in the Bookmark or Domain scope. See the Expression chapter for reference, but usually you will pass a dimension name you want to group the result by. Alternatively you can use a wildcard (*) as a value to replace the default reference settings. In case of Bookmark it will be replaced by the selected dimensions; in case of Domain it will be replaced by ALL dimensions (so use with care).</td>
 </tr>
 <tr>
 <td>metrics</td>
 <td>false</td>
-<td></td>
+<td>A list of expression to compute. This is a multi-valued parameter. Note that the list can be empty, in that case only the group by is applied (However the query will still perform a group by: if you want to export raw data you need to include an unique key in the list, such as a customer identifier). Each value must be a valid expression in the Bookmark or DOmain scope. See the Expression chapter for reference, but usually you will pass a metric name you want to aggregate the data upon. You can also use any valid expression (usually of numeric value) by combining dimensions, metrics and functions.</td>
 </tr>
 <tr>
 <td>filters</td>
 <td>false</td>
-<td></td>
+<td>A list of conditional expression to filter the data. Note that the list can be empty. Each value must be a valid expression in the Bookmark or Domain scope. See the Expression chapter for reference, but usually you can use any dimension of type conditional (also called segment), or create a simple condition using constant values for instance. You can also use any valid conditional expression by combining dimensions, metrics and functions.</td>
 </tr>
 <tr>
 <td>period</td>
 <td>false</td>
-<td></td>
+<td>the period expression is a shorthand to filter on a timeframe. The expression type is expected to be a date or a timestamp. You can use any valid expression in the Bookmark or Domain scope; usually you can just use a Date dimension (with or without indexing). You can use any function, especially date functions. If this parameter is set, you should provide a timeframe parameters too - see next one for details.</td>
 </tr>
 <tr>
 <td>timeframe</td>
 <td>false</td>
-<td></td>
+<td>the <code class="prettyprint">timeframe</code> parameter is used to define the date or time range of the period. You can either use explicit values (in that case you should provide both lower and upper bounds, thought you can pass a null value to create a semi-open range) or use an alias value or a constant expression. See the <a href="#period-timeframe">Period definition</a> for details.</td>
 </tr>
 <tr>
 <td>compareTo</td>
 <td>false</td>
-<td></td>
+<td>the <code class="prettyprint">compareTo</code> parameter is used in conjunction with the <code class="prettyprint">timeframe</code> parameter to create an automatic comparison between present and past metrics. Setting a value will automatically turn the compare feature on (see <a href="comparing-present-and-past-metrics">compareTo section for details</a>)  You can either use explicit values (in that case you should provide both lower and upper bounds, thought you can pass a null value to create a semi-open range) or use an alias value or a constant expression. Note that the alias values for the <code class="prettyprint">compareTo</code> parameter are different from the <code class="prettyprint">timeframe</code> parameter.</td>
 </tr>
 <tr>
 <td>orderBy</td>
 <td>false</td>
-<td></td>
+<td>a list of sort expression to order the results. Note that the list can be empty. Each value must be a valid <em>sort</em> expression in the Bookmark or Domain scope. A valid <em>sort</em> expression is any expression enclosed by the <code class="prettyprint">DESC()</code> or <code class="prettyprint">ASC()</code> functions.</td>
 </tr>
 <tr>
 <td>limit</td>
@@ -510,7 +536,7 @@ If it is a Bookmark, it will use the bookmark default analysis. In case of a Dom
 <tr>
 <td>state</td>
 <td>false</td>
-<td>The state parameter, if provided, is used to apply the state configuration to the current domain/bookmark. It will override any other settings. You can copy an application state - it will compute the corresponding query. Note however that an application can store custom information and do additional computation, tht won&rsquo;t be supported by the API.</td>
+<td>The state parameter, if provided, is used to apply the state configuration to the current domain/bookmark. It will override any other settings. You can copy an application state - it will compute the corresponding query. Note however that an application can store custom information and do additional computation, that won&rsquo;t be supported by the API.</td>
 </tr>
 </tbody></table>
 
@@ -520,15 +546,23 @@ If it is a Bookmark, it will use the bookmark default analysis. In case of a Dom
 
 <p>In case of a Bookmark reference, it will compute the Bookmark pre-defined analysis, with default settings.</p>
 
-<h4 id="state">State</h4>
+<h4 id="using-state">Using State</h4>
 
 <p>If a stateID is provided, the API will try to load the State.</p>
 
+<h4 id="defining-query">Defining Query</h4>
+
+<p>Group By and Metrics</p>
+
+<h4 id="filtering">Filtering</h4>
+
 <h4 id="period-amp-timeframe">Period &amp; TimeFrame</h4>
 
-<p>The <code class="prettyprint">period</code> parameter defines the expression to use as the main Period for filtering on <code class="prettyprint">timeframe</code> and also to perform time-over-time comparison (see <a href="#compareto">CompareTo</a>).</p>
+<p>The <code class="prettyprint">period</code> parameter defines the expression to use as the main Period for filtering on <code class="prettyprint">timeframe</code> and also to perform time-over-time comparison (see <a href="#comparing-present-and-past-metrics">Comparing Present and Past Metrics</a>).</p>
 
 <p>Also once you defined the <code class="prettyprint">period</code>, you can then use the <code class="prettyprint">__PERIOD</code> alias in the expression you are using for other parameters (for example <code class="prettyprint">groupby</code> or <code class="prettyprint">orderby</code>; it also work with the <a href="#view-a-bookmark-or-domain">/view API</a> as <code class="prettyprint">x</code>, <code class="prettyprint">y</code>, <code class="prettyprint">color</code>, &hellip; parameters). Note that you can use the alias <code class="prettyprint">__PERIOD</code> also in expression, for example: <code class="prettyprint">MONTHLY(&#39;__PERIOD&#39;)</code> to extract the first day of month of the date - if you want to aggregate results by month for instance.</p>
+
+<p>Note you can also use the <code class="prettyprint">filters</code> parameter to filter on period. This may be useful for special cases, e.g. to define a non-constant period filter&hellip; Also if you use directly the <code class="prettyprint">filter</code> parameter, the <code class="prettyprint">__PERIOD</code> alias is not available.</p>
 
 <p>The <code class="prettyprint">timeframe</code> parameter is an array of values that you can use to filter the data on the <code class="prettyprint">period</code> value.
 If the <code class="prettyprint">timeframe</code> is not defined, even if the <code class="prettyprint">period</code> is defined, no filter is applied.
@@ -541,13 +575,49 @@ If the <code class="prettyprint">timeframe</code> is defined, you must also defi
 
 <h5 id="timeframe-defined-using-explicit-date-range">TimeFrame defined using explicit date range</h5>
 
+<p>In that case you can just provide the date or timestamp value as a formatted string. The API supports the following formats:
+ * ISO 8601 timestamp: <code class="prettyprint">yyyy-MM-dd&#39;T&#39;HH:mm:ss.SSSZ</code>
+ * ISO 8601 date: <code class="prettyprint">yyyy-MM-dd</code>
+ * default Java timestamp format: <code class="prettyprint">EEE MMM dd HH:mm:ss zzz yyyy</code></p>
+
 <h5 id="timeframe-defined-using-an-alias">TimeFrame defined using an alias</h5>
+
+<ul>
+<li><code class="prettyprint">__LAST_7_DAYS</code> </li>
+<li><code class="prettyprint">__CURRENT_MONTH</code> </li>
+<li><code class="prettyprint">__PREVIOUS_MONTH</code></li>
+<li><code class="prettyprint">__CURRENT_YEAR</code></li>
+</ul>
 
 <h5 id="timeframe-defined-using-an-expression">TimeFrame defined using an expression</h5>
 
-<p>Note that this is a shorthand to simplify date filtering. You can also use the <code class="prettyprint">filters</code> parameter if you need to address some special cases.</p>
+<p>The last method is to define a constant expression. </p>
 
-<h4 id="compareto">CompareTo</h4>
+<h4 id="comparing-present-and-past-metrics">Comparing Present and Past metrics</h4>
+
+<p>The <code class="prettyprint">compareTo</code> parameter accept the same definitions as the <code class="prettyprint">timeframe</code> parameter, except for the aliases. The <code class="prettyprint">compareTo</code> parameter defines a different set of aliases that you can use to easily define relative comparison:</p>
+
+<ul>
+<li><code class="prettyprint">__COMPARE_TO_PREVIOUS_PERIOD</code> </li>
+<li><code class="prettyprint">__COMPARE_TO_PREVIOUS_MONTH</code> </li>
+<li><code class="prettyprint">__COMPARE_TO_PREVIOUS_YEAR</code></li>
+</ul>
+
+<p>##### ordering by comparison metric</p>
+
+<h4 id="ordering-the-results">Ordering the results</h4>
+
+<h5 id="sort-expression">Sort Expression</h5>
+
+<h5 id="defining-how-to-sort">defining how to sort</h5>
+
+<p>The easiest way to define a sort order is to use an existing resultset column and provide the position of the column. For example in order to sort on the first column:
+<code class="prettyprint">ASC(0)</code>
+The position is zero-based, so the first column is 0, the second is 1, etc&hellip;</p>
+
+<aside class="warning">
+You cannot use index based orderBy to sort by a comareTo metric. In that case (if the `compareTo` parameter is set), indexes are not taking into account the compareTo columns generated by the query. If you need to sort the result based on a compareTo column you must use the explicit column name (see <a href="#ordering-by-comparison-metric">ordering by comparison metric</a> for details)
+</aside>
 
 <h4 id="expressions">Expressions</h4>
 
@@ -592,6 +662,189 @@ If the <code class="prettyprint">timeframe</code> is defined, you must also defi
 </tbody></table>
 
 <p>Note that you can play with the <code class="prettyprint">envelope</code> parameter in order to customize further the reply. For instance if you want to get only the data as the reply, you can add <code class="prettyprint">envelope=DATA</code> parameter. If <code class="prettyprint">data=SQL</code> is used, this will return just the SQL statement. See <a href="#envelope-parameter">Envelope Parameter</a> for details.</p>
+
+<h3 id="examples">Examples</h3>
+
+<h4 id="how-to-compute-metrics-by-month-and-display-it-by-pivot">How to compute metrics by month and display it by pivot?</h4>
+
+<p>How can one create a query that returns the following table:</p>
+
+<table><thead>
+<tr>
+<th>Country</th>
+<th>Total</th>
+<th>Jan 2016</th>
+<th>Fev 2016</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>France</td>
+<td>1.000</td>
+<td>400</td>
+<td>600</td>
+</tr>
+<tr>
+<td>US</td>
+<td>2.000</td>
+<td>800</td>
+<td>1.200</td>
+</tr>
+</tbody></table>
+
+<aside class="notice">
+Note that we are using POST version of /analysis/ID/query for clarity. You can as well use the GET version.
+</aside>
+
+<blockquote>
+<p>this is the POST payload you have to send to run the query.</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+</span><span class="nt">"period"</span><span class="p">:</span><span class="s2">"date"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"timeframe"</span><span class="p">:[</span><span class="s2">"2016-01-01"</span><span class="p">,</span><span class="s2">"2016-02-29"</span><span class="p">],</span><span class="w">
+</span><span class="nt">"groupBy"</span><span class="p">:[</span><span class="s2">"'Country'"</span><span class="p">],</span><span class="w">
+</span><span class="nt">"metrics"</span><span class="p">:[</span><span class="s2">"'Total'"</span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p>Let&rsquo;s start with the simple query that returns the total for the selected period (from 2016/01/01 to 2016/02/29):</p>
+
+<table><thead>
+<tr>
+<th>Country</th>
+<th>Total</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>France</td>
+<td>1.000</td>
+</tr>
+<tr>
+<td>US</td>
+<td>2.000</td>
+</tr>
+</tbody></table>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+</span><span class="nt">"period"</span><span class="p">:</span><span class="s2">"Date"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"timeframe"</span><span class="p">:[</span><span class="s2">"2016-01-01"</span><span class="p">,</span><span class="s2">"2016-02-29"</span><span class="p">],</span><span class="w">
+</span><span class="nt">"groupBy"</span><span class="p">:[</span><span class="s2">"'Country'"</span><span class="p">,</span><span class="s2">"monthly(__PERIOD)"</span><span class="p">],</span><span class="w">
+</span><span class="nt">"metrics"</span><span class="p">:[</span><span class="s2">"'Total'"</span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p>We can easily add the monthly total to get the details:</p>
+
+<table><thead>
+<tr>
+<th>Country</th>
+<th>Monthly</th>
+<th>Total</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>France</td>
+<td>2016/01/01</td>
+<td>1.000</td>
+</tr>
+<tr>
+<td>US</td>
+<td>2016/02/29</td>
+<td>2.000</td>
+</tr>
+</tbody></table>
+
+<aside class="notice">
+Note that we are using the `__PERIOD` alias in place of the `Date` dimension, and group by month using the `monthly()` function.
+</aside>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+</span><span class="nt">"period"</span><span class="p">:</span><span class="s2">"Date"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"timeframe"</span><span class="p">:[</span><span class="s2">"2016-01-01"</span><span class="p">,</span><span class="s2">"2016-02-29"</span><span class="p">],</span><span class="w">
+</span><span class="nt">"groupBy"</span><span class="p">:[</span><span class="s2">"'Country'"</span><span class="p">,</span><span class="s2">"monthly(__PERIOD)"</span><span class="p">],</span><span class="w">
+</span><span class="nt">"metrics"</span><span class="p">:[</span><span class="s2">"'Total'"</span><span class="p">],</span><span class="w">
+</span><span class="nt">"orderBy"</span><span class="p">:[</span><span class="s2">"'Country'"</span><span class="p">,</span><span class="s2">"monthly(__PERIOD)"</span><span class="p">],</span><span class="w">
+</span><span class="nt">"rollup"</span><span class="p">:[</span><span class="mi">0</span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p>We can also add the total by country using the rollup feature:</p>
+
+<table><thead>
+<tr>
+<th>GROUPING_ID</th>
+<th>Country</th>
+<th>Monthly</th>
+<th>Total</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>1</td>
+<td>France</td>
+<td></td>
+<td>1.000</td>
+</tr>
+<tr>
+<td></td>
+<td>France</td>
+<td>2016-01-01</td>
+<td>400</td>
+</tr>
+<tr>
+<td></td>
+<td>France</td>
+<td>2016-02-01</td>
+<td>600</td>
+</tr>
+<tr>
+<td>1</td>
+<td>US</td>
+<td></td>
+<td>2.000</td>
+</tr>
+<tr>
+<td></td>
+<td>US</td>
+<td>2016-01-01</td>
+<td>800</td>
+</tr>
+<tr>
+<td></td>
+<td>US</td>
+<td>2016-02-01</td>
+<td>1.200</td>
+</tr>
+</tbody></table>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+</span><span class="nt">"period"</span><span class="p">:</span><span class="s2">"Date"</span><span class="p">,</span><span class="w">
+</span><span class="nt">"timeframe"</span><span class="p">:[</span><span class="s2">"2016-01-01"</span><span class="p">,</span><span class="s2">"2016-02-29"</span><span class="p">],</span><span class="w">
+</span><span class="nt">"groupBy"</span><span class="p">:[</span><span class="s2">"'Country'"</span><span class="p">,</span><span class="s2">"monthly(__PERIOD)"</span><span class="p">],</span><span class="w">
+</span><span class="nt">"metrics"</span><span class="p">:[</span><span class="s2">"'Total'"</span><span class="w">
+          </span><span class="p">,</span><span class="s2">"'Total' ON monthly(__PERIOD)=date(\"01/01/16\") as 'JAN 2016'"</span><span class="w">
+          </span><span class="p">,</span><span class="s2">"'Total' ON monthly(__PERIOD)=date(\"01/02/16\") as 'FEV 2016'"</span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p>Now in order to pivot, we need to add additional metrics for each required column:</p>
+
+<table><thead>
+<tr>
+<th>Country</th>
+<th>Total</th>
+<th>Jan 2016</th>
+<th>Fev 2016</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>France</td>
+<td>1.000</td>
+<td>400</td>
+<td>600</td>
+</tr>
+<tr>
+<td>US</td>
+<td>2.000</td>
+<td>800</td>
+<td>1.200</td>
+</tr>
+</tbody></table>
 
 <h2 id="query-status">Query Status</h2>
 
