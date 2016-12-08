@@ -63,19 +63,33 @@ In all example you must replace <code>TOKEN</code> with the OAuth2 token.
 
 This is a brief overview of the various concepts use by Bouquet to organize information.
 
-## Project
+## Projects
 
 A Project is the top level object that organize data-source model. First a Project defines how to accessing the data-source, through a JDBC url and required authentication. Also the Project defines which part of the data-source will be made available through the API, by listing visible schemas.
 
 A Project also maintains a list of Domain.
 
-## Domain
+## Domains
 
 A Domain is associated with a table or view in the data-source. A Domain can be created dynamically by Open Bouquet, or explicitly by a user. Also a user can modify a dynamic Domain to make it permanent and persist the changes to the model.
 
-A Domain has Dimension and Metric attributes, which are dynamically mapped to the underlying data-source. A user can also modify an existing attribute, or create new ones. Those changes are persisted in the model.
+A Domain has Dimension and Metric attributes, which are dynamically mapped to the underlying data-source. A user can also modify any existing attribute, or create new ones. Those changes are then persisted in the model.
 
-## Bookmark
+### Dimensions
+
+A Dimension is any non-aggregated expression defined on the Domain.
+
+### Metrics
+
+A Metric is any expression defined on the Domain. If the metric is an aggregated expression, it will be use as is. If it is not an aggregated expression, nor an analytics expression, it must be possible to apply an aggregation operator like SUM(), ...
+
+Since a Metric can be any expression, it can contain conditional operator like CASE(), combined with an aggregation operator.
+
+## Relations
+
+A Relation defines how to join two Domains. It is defined by a left and right domain, and a predicate expression between the two. It also specify the relation cardinality.
+
+## Bookmarks
 
 A Bookmark is a simple way to create a custom view on your model. From a Domain, you can define a default analysis, select filters, restrict the dimension and metrics usable for pivoting. Bookmarks are also organized on their own inside folders, independently from the Projects - so you can mix in the same folder Bookmarks from different Projects.
 
@@ -99,6 +113,8 @@ In that mode the API will output some simple HTML that allows interaction throug
 </aside>
 
 ## List available content
+
+> This is a very simple example demonstrating how you can get the top level content in your account. In that example you don't need to provide any parameter.
 
 ```shell
 curl -X GET 
@@ -137,6 +153,15 @@ envelope | false, default=RESULT | defines the output content, check API referen
 
 ### Parent parameter
 
+> This is an example demonstrating how you can list the projects available in your account.
+
+```shell
+curl -X GET 
+    --header 'Accept: application/json' 
+    --header 'Authorization: Bearer TOKEN'
+    "http://yourserverdomain/v4.2/analytics?parent=/PROJECTS"
+```
+
 The parent parameter is a path. Each section of the path identify a valid container, using either its name or immutable ID.
 
 When browsing the content, you can always use a child `selfRef` property to deep dive into it.
@@ -169,40 +194,30 @@ Both path returns a list of Bookmarks and Folders.
 
 ### Reply
 
-
-> This is the reply for content at the root:
+> This is the reply from the previous API call for listing available projects
 
 ```json
 {
 "parent": {
-"name": "Root",
-"description": "list all your available content, organize by Projects and Bookmarks",
-"selfRef": "/",
-"type": "FOLDER"
-},
-"children": [
-{
-"name": "Projects",
-"description": "list all your Projects",
-"parentRef": "/",
-"selfRef": "/PROJECTS",
-"type": "FOLDER"
-},
-{
-"name": "Shared Bookmarks",
-"description": "list all the bookmarks shared with you",
-"parentRef": "/",
-"selfRef": "/SHARED",
-"type": "FOLDER"
-},
-{
-"name": "My Bookmarks",
-"description": "list all your bookmarks",
-"parentRef": "/",
-"selfRef": "/MYBOOKMARKS",
-"type": "FOLDER"
-}
-]
+    "name": "Projects",
+    "description": "list all your Projects",
+    "parentRef": "/",
+    "selfRef": "/PROJECTS",
+    "type": "FOLDER",
+    "link": "http://yourserverdomain/v4.2/analytics?parent=/PROJECTS&style=HUMAN&visibility=ALL&access_token=xxx",
+    "upLink": "http://yourserverdomain/v4.2/analytics?parent=/&style=HUMAN&visibility=ALL&access_token=xxx"
+    },
+"children": [{
+    "name": "demo project",
+    "attributes": {
+        "jdbc": "jdbc:postgreql://databasehost:5432/demo"
+    },
+    "parentRef": "/PROJECTS",
+    "selfRef": "/PROJECTS/demo project",
+    "type": "PROJECT",
+    "link": "http://yourserverdomain/v4.2/analytics?parent=/PROJECTS/demo project&style=HUMAN&visibility=ALL&access_token=xxx",
+    "objectLink": "http://yourserverdomain/v4.2/rs/projects/576002908294a27bac5a6946?style=HUMAN&access_token=xxx"
+    }]
 }
 ```
 
@@ -221,6 +236,14 @@ description |
 parentRef | 
 selfRef | 
 type | 
+
+The `link` provides you direct navigation into the content hierarchy. If the object type is a container, the link navigate to the content. If the object type cannot be navigated, it is a link to the associated query.
+
+The `objectLink` provides a link to the detailed definition of the object. So it will redirect you to a different API depending on the object type. This API is actually the metadata management API that allows you to discover but also modify the model definition.
+
+<aside class="notice">
+Navigation in your browser is easier if you install a json prettify plugin :)
+</aside>
 
 ## Query a Bookmark or Domain
 
@@ -257,13 +280,13 @@ If it is a Bookmark, it will use the bookmark default analysis. In case of a Dom
 
 Parameter | Required | Description
 --------- | -------- | -----------
-groupBy | false | This is a multi-valued parameter. Each value must be a valid expression in the Bookmark/Domain scope. See the Expression chapter for reference, but usually you will pass the dimension name you want to group the result by. Alternatively you can use a wildcard (*) as a value to replace the default reference settings. In case of Bookmark it will be replaced by the selected dimensions; in case of Domain it will be replaced by ALL dimensions (so use with care).
-metrics | false |
-filters | false |
-period | false |
-timeframe | false |
-compareTo | false |
-orderBy | false | 
+groupBy | false | A list of expression to group the result by. This is a multi-valued parameter. Note that the list can be empty, in that case the resulting dataset will be one row as maximum if you provide metrics to compute. Each value must be a valid expression in the Bookmark or Domain scope. See the Expression chapter for reference, but usually you will pass a dimension name you want to group the result by. Alternatively you can use a wildcard (*) as a value to replace the default reference settings. In case of Bookmark it will be replaced by the selected dimensions; in case of Domain it will be replaced by ALL dimensions (so use with care).
+metrics | false | A list of expression to compute. This is a multi-valued parameter. Note that the list can be empty, in that case only the group by is applied (However the query will still perform a group by: if you want to export raw data you need to include an unique key in the list, such as a customer identifier). Each value must be a valid expression in the Bookmark or DOmain scope. See the Expression chapter for reference, but usually you will pass a metric name you want to aggregate the data upon. You can also use any valid expression (usually of numeric value) by combining dimensions, metrics and functions.
+filters | false | A list of conditional expression to filter the data. Note that the list can be empty. Each value must be a valid expression in the Bookmark or Domain scope. See the Expression chapter for reference, but usually you can use any dimension of type conditional (also called segment), or create a simple condition using constant values for instance. You can also use any valid conditional expression by combining dimensions, metrics and functions.
+period | false | the period expression is a shorthand to filter on a timeframe. The expression type is expected to be a date or a timestamp. You can use any valid expression in the Bookmark or Domain scope; usually you can just use a Date dimension (with or without indexing). You can use any function, especially date functions. If this parameter is set, you should provide a timeframe parameters too - see next one for details.
+timeframe | false | the `timeframe` parameter is used to define the date or time range of the period. You can either use explicit values (in that case you should provide both lower and upper bounds, thought you can pass a null value to create a semi-open range) or use an alias value or a constant expression. See the [Period definition](#period-timeframe) for details. 
+compareTo | false | the `compareTo` parameter is used in conjunction with the `timeframe` parameter to create an automatic comparison between present and past metrics. Setting a value will automatically turn the compare feature on (see [compareTo section for details](comparing-present-and-past-metrics))  You can either use explicit values (in that case you should provide both lower and upper bounds, thought you can pass a null value to create a semi-open range) or use an alias value or a constant expression. Note that the alias values for the `compareTo` parameter are different from the `timeframe` parameter.
+orderBy | false | a list of sort expression to order the results. Note that the list can be empty. Each value must be a valid *sort* expression in the Bookmark or Domain scope. A valid *sort* expression is any expression enclosed by the `DESC()` or `ASC()` functions. 
 limit | false | 
 offset | false | 
 maxRsults | false | 
@@ -273,7 +296,7 @@ data | false | This parameter defines how to layout the data output. You can use
 style | false | This parameter defines the reply style. The style can modify the response type in order to get a HTML version of the reply. It can also modify the content of the JSON reply by altering the way it references objects. If `style=HUMAN` the API will use object names, so you can read and easily understand the output; but on the other side those outputs are fragile to name change so you cannot use them to build an application for instance. If you need the references to be immutable, you need to use `style=ROBOT`; but then the output is going to be difficult to read. Note that you can switch between `HUMAN` and `ROBOT` easily, only the references are modified.
 envelope | false | This parameter defines the content of the reply. You can use it to further customize what information you need, from a full reply including the explicit query as it is interpreted by the API, reply meta-information, header and data; or you can just ask for the data. See [Style Parameter](#style-parameter) for details.
 timeout | false | The timeout is in milliseconds. If provided the request execution will be interrupted if exceeding provided timeout. In that case the API will return an ComputingInProgressAPIException. Note that the execution will continue server side, you are only interrupting the request. You can run the same request again (with or without timeout) in order to get the reply (each request is actually pooled, so performing multiple request is actually running the query only once). Note also that the error message contains a QueryID that identifies running query. You can use the /status/QueryID API in order to get information regarding the query (see [/status API](#query-status)) or cancel the execution.
-state | false | The state parameter, if provided, is used to apply the state configuration to the current domain/bookmark. It will override any other settings. You can copy an application state - it will compute the corresponding query. Note however that an application can store custom information and do additional computation, tht won't be supported by the API.
+state | false | The state parameter, if provided, is used to apply the state configuration to the current domain/bookmark. It will override any other settings. You can copy an application state - it will compute the corresponding query. Note however that an application can store custom information and do additional computation, that won't be supported by the API.
 
 #### Default Query
 
@@ -281,15 +304,25 @@ If no parameter is provided, the method will try to compute a default query.
 
 In case of a Bookmark reference, it will compute the Bookmark pre-defined analysis, with default settings.
 
-#### State
+#### Using State
 
 If a stateID is provided, the API will try to load the State.
 
+#### Defining Query
+
+Group By and Metrics
+
+#### Filtering
+
+
+
 #### Period & TimeFrame
 
-The `period` parameter defines the expression to use as the main Period for filtering on `timeframe` and also to perform time-over-time comparison (see [CompareTo](#compareto)).
+The `period` parameter defines the expression to use as the main Period for filtering on `timeframe` and also to perform time-over-time comparison (see [Comparing Present and Past Metrics](#comparing-present-and-past-metrics)).
 
 Also once you defined the `period`, you can then use the `__PERIOD` alias in the expression you are using for other parameters (for example `groupby` or `orderby`; it also work with the [/view API](#view-a-bookmark-or-domain) as `x`, `y`, `color`, ... parameters). Note that you can use the alias `__PERIOD` also in expression, for example: `MONTHLY('__PERIOD')` to extract the first day of month of the date - if you want to aggregate results by month for instance.
+
+Note you can also use the `filters` parameter to filter on period. This may be useful for special cases, e.g. to define a non-constant period filter... Also if you use directly the `filter` parameter, the `__PERIOD` alias is not available.
 
 The `timeframe` parameter is an array of values that you can use to filter the data on the `period` value.
 If the `timeframe` is not defined, even if the `period` is defined, no filter is applied.
@@ -302,13 +335,48 @@ There are three ways to define the `timeframe`:
 
 ##### TimeFrame defined using explicit date range
 
+In that case you can just provide the date or timestamp value as a formatted string. The API supports the following formats:
+ * ISO 8601 timestamp: `yyyy-MM-dd'T'HH:mm:ss.SSSZ`
+ * ISO 8601 date: `yyyy-MM-dd`
+ * default Java timestamp format: `EEE MMM dd HH:mm:ss zzz yyyy`
+
 ##### TimeFrame defined using an alias
+
+ * `__LAST_7_DAYS` 
+ * `__CURRENT_MONTH` 
+ * `__PREVIOUS_MONTH`
+ * `__CURRENT_YEAR`
 
 ##### TimeFrame defined using an expression
 
-Note that this is a shorthand to simplify date filtering. You can also use the `filters` parameter if you need to address some special cases.
+The last method is to define a constant expression. 
 
-#### CompareTo
+#### Comparing Present and Past metrics
+
+The `compareTo` parameter accept the same definitions as the `timeframe` parameter, except for the aliases. The `compareTo` parameter defines a different set of aliases that you can use to easily define relative comparison:
+
+ * `__COMPARE_TO_PREVIOUS_PERIOD` 
+ * `__COMPARE_TO_PREVIOUS_MONTH` 
+ * `__COMPARE_TO_PREVIOUS_YEAR`
+ 
+ ##### ordering by comparison metric
+ 
+ 
+
+#### Ordering the results
+
+##### Sort Expression
+
+##### defining how to sort
+
+The easiest way to define a sort order is to use an existing resultset column and provide the position of the column. For example in order to sort on the first column:
+`ASC(0)`
+The position is zero-based, so the first column is 0, the second is 1, etc...
+
+<aside class="warning">
+You cannot use index based orderBy to sort by a comareTo metric. In that case (if the `compareTo` parameter is set), indexes are not taking into account the compareTo columns generated by the query. If you need to sort the result based on a compareTo column you must use the explicit column name (see <a href="#ordering-by-comparison-metric">ordering by comparison metric</a> for details)
+</aside>
+
 
 #### Expressions
 
@@ -333,6 +401,101 @@ Data&nbsp;Value | Table Layout
 `LEGACY` | return a JSON compatible with legacy API - this is for internal use only, you should not use it, it will be deprecated soon.
 
 Note that you can play with the `envelope` parameter in order to customize further the reply. For instance if you want to get only the data as the reply, you can add `envelope=DATA` parameter. If `data=SQL` is used, this will return just the SQL statement. See [Envelope Parameter](#envelope-parameter) for details.
+
+### Examples
+
+#### How to compute metrics by month and display it by pivot?
+
+How can one create a query that returns the following table:
+
+Country | Total | Jan 2016 | Fev 2016
+------- | ----- | -------- | --------
+France | 1.000 | 400 | 600
+US | 2.000 | 800 | 1.200
+
+<aside class="notice">
+Note that we are using POST version of /analysis/ID/query for clarity. You can as well use the GET version.
+</aside>
+
+> this is the POST payload you have to send to run the query.
+
+```json
+{
+"period":"date",
+"timeframe":["2016-01-01","2016-02-29"],
+"groupBy":["'Country'"],
+"metrics":["'Total'"]
+}
+```
+
+Let's start with the simple query that returns the total for the selected period (from 2016/01/01 to 2016/02/29):
+
+Country | Total 
+------- | ----- 
+France | 1.000 
+US | 2.000 
+
+```json
+{
+"period":"Date",
+"timeframe":["2016-01-01","2016-02-29"],
+"groupBy":["'Country'","monthly(__PERIOD)"],
+"metrics":["'Total'"]
+}
+```
+
+We can easily add the monthly total to get the details:
+
+Country | Monthly | Total 
+------- | ------- | -----
+France | 2016/01/01 | 1.000 
+US | 2016/02/29 | 2.000 
+
+<aside class="notice">
+Note that we are using the `__PERIOD` alias in place of the `Date` dimension, and group by month using the `monthly()` function.
+</aside>
+
+```json
+{
+"period":"Date",
+"timeframe":["2016-01-01","2016-02-29"],
+"groupBy":["'Country'","monthly(__PERIOD)"],
+"metrics":["'Total'"],
+"orderBy":["'Country'","monthly(__PERIOD)"],
+"rollup":[0]
+}
+```
+
+We can also add the total by country using the rollup feature:
+
+GROUPING_ID | Country | Monthly | Total 
+----------- | ------- | ------- | -----
+1 | France |  | 1.000 
+  | France | 2016-01-01 | 400
+  | France | 2016-02-01 | 600
+1 | US | | 2.000 
+  | US | 2016-01-01 | 800
+  | US | 2016-02-01 | 1.200
+  
+
+```json
+{
+"period":"Date",
+"timeframe":["2016-01-01","2016-02-29"],
+"groupBy":["'Country'","monthly(__PERIOD)"],
+"metrics":["'Total'"
+          ,"'Total' ON monthly(__PERIOD)=date(\"01/01/16\") as 'JAN 2016'"
+          ,"'Total' ON monthly(__PERIOD)=date(\"01/02/16\") as 'FEV 2016'"]
+}
+```
+
+Now in order to pivot, we need to add additional metrics for each required column:
+
+Country | Total | Jan 2016 | Fev 2016
+------- | ----- | -------- | --------
+France | 1.000 | 400 | 600
+US | 2.000 | 800 | 1.200
+
 
 ## Query Status
 
