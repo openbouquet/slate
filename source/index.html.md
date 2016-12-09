@@ -286,37 +286,47 @@ filters | false | A list of conditional expression to filter the data. Note that
 period | false | the period expression is a shorthand to filter on a timeframe. The expression type is expected to be a date or a timestamp. You can use any valid expression in the Bookmark or Domain scope; usually you can just use a Date dimension (with or without indexing). You can use any function, especially date functions. If this parameter is set, you should provide a timeframe parameters too - see next one for details.
 timeframe | false | the `timeframe` parameter is used to define the date or time range of the period. You can either use explicit values (in that case you should provide both lower and upper bounds, thought you can pass a null value to create a semi-open range) or use an alias value or a constant expression. See the [Period definition](#period-timeframe) for details. 
 compareTo | false | the `compareTo` parameter is used in conjunction with the `timeframe` parameter to create an automatic comparison between present and past metrics. Setting a value will automatically turn the compare feature on (see [compareTo section for details](comparing-present-and-past-metrics))  You can either use explicit values (in that case you should provide both lower and upper bounds, thought you can pass a null value to create a semi-open range) or use an alias value or a constant expression. Note that the alias values for the `compareTo` parameter are different from the `timeframe` parameter.
-orderBy | false | a list of sort expression to order the results. Note that the list can be empty. Each value must be a valid *sort* expression in the Bookmark or Domain scope. A valid *sort* expression is any expression enclosed by the `DESC()` or `ASC()` functions. 
-limit | false | 
-offset | false | 
-maxRsults | false | 
-startIndex | false | 
-lazy | false | 
+orderBy | false | a list of sort expression to order the results. Note that the list can be empty. Each value must be a valid *sort* expression in the Bookmark or Domain scope. A valid *sort* expression is any expression enclosed by the `DESC()` or `ASC()` functions. In order to define the value to sort on, you can use either an index value, the name of a column (Dimension or Metric), or any valid expression.
+rollup | false | a list of rollup expression to define how to compute sub-totals. Note that the list can be empty. Each value must be a valid *rollup* expression identifying a query groupBy column. See [Computing Rollup](#computing-rollup) for details. 
+limit | true | the `limit` parameter simply allows to limit the number of rows extracted **server side**. This is mandatory for the /query API to avoid memory overflow. If you need a full resultset, you should better use the [/export API](#export-a-bookmark-or-domain) which is designed to handle large number of rows, potentially exceeding the server internal memory. See [Query Pagination](#query-pagination) for details.
+offset | false | the `offset` parameter allows to paginate the rows extracted **server side**. Default value is to start at the first row. See [Query Pagination](#query-pagination) for details.
+maxResults | false | the `maxResults` parameter allows to control the client-side pagination, and defines the page size. Note that paginating is unexpensive since the complete query (with limit and offset) is stored in the server cache. See [Query Pagination](#query-pagination) for details.
+startIndex | false | the `startIndex` parameter allows to control the client-side pagination, and defines the page starting row. Note that paginating is unexpensive since the complete query (with limit and offset) is stored in the server cache. See [Query Pagination](#query-pagination) for details.
+lazy | false | when the `lazy` parameter is set to true, the server tries to lookup the results from the cache directly. If it is not possible, no actual computation is performed **at all**. Note that the server may try to perform some transformation if it cannot lookup the exact same query from the cache (that's the smart cache). If the result is not in cache, the /query API returns an error code 404. See [Controlling Query Execution](#controlling-query-execution) for details.
+timeout | false | The timeout is in milliseconds. If provided the request execution will be interrupted if exceeding provided timeout. In that case the API will return an ComputingInProgressAPIException. Note that the execution will continue server side, you are only interrupting the request. You can run the same request again (with or without timeout) in order to get the reply (each request is actually pooled, so performing multiple request is actually running the query only once). Note also that the error message contains a QueryID that identifies running query. You can use the /status/QueryID API in order to get information regarding the query (see [/status API](#query-status)) or cancel the execution.
+state | false | The `state` parameter, if provided, is used to apply the state configuration to the current domain. It will override any other settings. You can copy an application state - it will compute the corresponding query. Note however that an application can store custom information and do additional computation, that won't be supported by the API. Also the state must be for the same domain for this to work.
 data | false | This parameter defines how to layout the data output. You can use it in conjunction with style and envelope to further customize the reply. See the [Supported Data Layouts](#supported-data-layouts) for up to date information.
 style | false | This parameter defines the reply style. The style can modify the response type in order to get a HTML version of the reply. It can also modify the content of the JSON reply by altering the way it references objects. If `style=HUMAN` the API will use object names, so you can read and easily understand the output; but on the other side those outputs are fragile to name change so you cannot use them to build an application for instance. If you need the references to be immutable, you need to use `style=ROBOT`; but then the output is going to be difficult to read. Note that you can switch between `HUMAN` and `ROBOT` easily, only the references are modified.
 envelope | false | This parameter defines the content of the reply. You can use it to further customize what information you need, from a full reply including the explicit query as it is interpreted by the API, reply meta-information, header and data; or you can just ask for the data. See [Style Parameter](#style-parameter) for details.
-timeout | false | The timeout is in milliseconds. If provided the request execution will be interrupted if exceeding provided timeout. In that case the API will return an ComputingInProgressAPIException. Note that the execution will continue server side, you are only interrupting the request. You can run the same request again (with or without timeout) in order to get the reply (each request is actually pooled, so performing multiple request is actually running the query only once). Note also that the error message contains a QueryID that identifies running query. You can use the /status/QueryID API in order to get information regarding the query (see [/status API](#query-status)) or cancel the execution.
-state | false | The state parameter, if provided, is used to apply the state configuration to the current domain/bookmark. It will override any other settings. You can copy an application state - it will compute the corresponding query. Note however that an application can store custom information and do additional computation, that won't be supported by the API.
 
-#### Default Query
+
+### Default Query
 
 If no parameter is provided, the method will try to compute a default query.
 
-In case of a Bookmark reference, it will compute the Bookmark pre-defined analysis, with default settings.
+In case of a Bookmark reference, the /query API will compute the Bookmark pre-defined analysis, with default settings.
+
+In case of a Domain, the /query API will just add the available metrics and compute totals. If a date or timestamp Dimension is defined, the /query API will also try to use it to restrict the query to the current month.
 
 #### Using State
 
-If a stateID is provided, the API will try to load the State.
+If a stateID is provided using the `state` parameter, the /query API will try to apply the state. Note that the state must be defined on the same Domain for this to work.
 
-#### Defining Query
+### Expressions
+
+The expressions are all evaluated in the current Domain scope (if the reference is a Bookmark, it is its domain).
+
+See the ["Expression Reference Guide"](#expression-reference-guide) for details about how to create expressions.
+
+### Defining Query
 
 Group By and Metrics
 
-#### Filtering
+### Filtering
 
 
 
-#### Period & TimeFrame
+### Period & TimeFrame
 
 The `period` parameter defines the expression to use as the main Period for filtering on `timeframe` and also to perform time-over-time comparison (see [Comparing Present and Past Metrics](#comparing-present-and-past-metrics)).
 
@@ -333,25 +343,25 @@ There are three ways to define the `timeframe`:
  * using an alias
  * using a expression
 
-##### TimeFrame defined using explicit date range
+#### TimeFrame defined using explicit date range
 
 In that case you can just provide the date or timestamp value as a formatted string. The API supports the following formats:
  * ISO 8601 timestamp: `yyyy-MM-dd'T'HH:mm:ss.SSSZ`
  * ISO 8601 date: `yyyy-MM-dd`
  * default Java timestamp format: `EEE MMM dd HH:mm:ss zzz yyyy`
 
-##### TimeFrame defined using an alias
+#### TimeFrame defined using an alias
 
  * `__LAST_7_DAYS` 
  * `__CURRENT_MONTH` 
  * `__PREVIOUS_MONTH`
  * `__CURRENT_YEAR`
 
-##### TimeFrame defined using an expression
+#### TimeFrame defined using an expression
 
 The last method is to define a constant expression. 
 
-#### Comparing Present and Past metrics
+### Comparing Present and Past metrics
 
 The `compareTo` parameter accept the same definitions as the `timeframe` parameter, except for the aliases. The `compareTo` parameter defines a different set of aliases that you can use to easily define relative comparison:
 
@@ -359,15 +369,15 @@ The `compareTo` parameter accept the same definitions as the `timeframe` paramet
  * `__COMPARE_TO_PREVIOUS_MONTH` 
  * `__COMPARE_TO_PREVIOUS_YEAR`
  
- ##### ordering by comparison metric
+#### ordering by comparison metric
  
  
 
-#### Ordering the results
+### Ordering the results
 
-##### Sort Expression
+#### Sort Expression
 
-##### defining how to sort
+#### defining how to sort
 
 The easiest way to define a sort order is to use an existing resultset column and provide the position of the column. For example in order to sort on the first column:
 `ASC(0)`
@@ -377,12 +387,27 @@ The position is zero-based, so the first column is 0, the second is 1, etc...
 You cannot use index based orderBy to sort by a comareTo metric. In that case (if the `compareTo` parameter is set), indexes are not taking into account the compareTo columns generated by the query. If you need to sort the result based on a compareTo column you must use the explicit column name (see <a href="#ordering-by-comparison-metric">ordering by comparison metric</a> for details)
 </aside>
 
+### Computing Rollup
 
-#### Expressions
 
-The expressions are all evaluated in the current Domain scope (if the reference is a Bookmark, it is its domain).
+### Controlling Query Execution
 
-See the ["Expression Reference Guide"](#expression-reference-guide) for details about how to create expressions.
+There is different ways to control the Query execution:
+ * using Lazy execution to get result only from the cache
+ * using a timeout to control how long to wait for the results
+ * when the Query timeout it is then possible to monitor progress and cancel it, see [Query Status](#query-status) for details.
+
+#### Lazy execution
+
+when the `lazy` parameter is set to true, the server tries to lookup the results from the cache directly. If it is not possible, no actual computation is performed **at all**. Note that the server may try to perform some transformation if it cannot lookup the exact same query from the cache (that's the smart cache).
+
+If the query is not in cache, the reply will state an error of cause NOT_IN_CACHE and a code 404.
+
+Note that if you use the `lazy=noError`, the /query API will return a valid reply instead of an error code, with an empty resultset and a problem identifying the cause (not in cache). That may be useful in some situation!
+
+#### Timeout
+
+### Query Pagination
 
 ### Reply
 
