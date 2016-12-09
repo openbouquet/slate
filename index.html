@@ -486,32 +486,47 @@ If it is a Bookmark, it will use the bookmark default analysis. In case of a Dom
 <tr>
 <td>orderBy</td>
 <td>false</td>
-<td>a list of sort expression to order the results. Note that the list can be empty. Each value must be a valid <em>sort</em> expression in the Bookmark or Domain scope. A valid <em>sort</em> expression is any expression enclosed by the <code class="prettyprint">DESC()</code> or <code class="prettyprint">ASC()</code> functions.</td>
+<td>a list of sort expression to order the results. Note that the list can be empty. Each value must be a valid <em>sort</em> expression in the Bookmark or Domain scope. A valid <em>sort</em> expression is any expression enclosed by the <code class="prettyprint">DESC()</code> or <code class="prettyprint">ASC()</code> functions. In order to define the value to sort on, you can use either an index value, the name of a column (Dimension or Metric), or any valid expression.</td>
+</tr>
+<tr>
+<td>rollup</td>
+<td>false</td>
+<td>a list of rollup expression to define how to compute sub-totals. Note that the list can be empty. Each value must be a valid <em>rollup</em> expression identifying a query groupBy column. See <a href="#computing-rollup">Computing Rollup</a> for details.</td>
 </tr>
 <tr>
 <td>limit</td>
-<td>false</td>
-<td></td>
+<td>true</td>
+<td>the <code class="prettyprint">limit</code> parameter simply allows to limit the number of rows extracted <strong>server side</strong>. This is mandatory for the /query API to avoid memory overflow. If you need a full resultset, you should better use the <a href="#export-a-bookmark-or-domain">/export API</a> which is designed to handle large number of rows, potentially exceeding the server internal memory. See <a href="#query-pagination">Query Pagination</a> for details.</td>
 </tr>
 <tr>
 <td>offset</td>
 <td>false</td>
-<td></td>
+<td>the <code class="prettyprint">offset</code> parameter allows to paginate the rows extracted <strong>server side</strong>. Default value is to start at the first row. See <a href="#query-pagination">Query Pagination</a> for details.</td>
 </tr>
 <tr>
-<td>maxRsults</td>
+<td>maxResults</td>
 <td>false</td>
-<td></td>
+<td>the <code class="prettyprint">maxResults</code> parameter allows to control the client-side pagination, and defines the page size. Note that paginating is unexpensive since the complete query (with limit and offset) is stored in the server cache. See <a href="#query-pagination">Query Pagination</a> for details.</td>
 </tr>
 <tr>
 <td>startIndex</td>
 <td>false</td>
-<td></td>
+<td>the <code class="prettyprint">startIndex</code> parameter allows to control the client-side pagination, and defines the page starting row. Note that paginating is unexpensive since the complete query (with limit and offset) is stored in the server cache. See <a href="#query-pagination">Query Pagination</a> for details.</td>
 </tr>
 <tr>
 <td>lazy</td>
 <td>false</td>
-<td></td>
+<td>when the <code class="prettyprint">lazy</code> parameter is set to true, the server tries to lookup the results from the cache directly. If it is not possible, no actual computation is performed <strong>at all</strong>. Note that the server may try to perform some transformation if it cannot lookup the exact same query from the cache (that&rsquo;s the smart cache). If the result is not in cache, the /query API returns an error code 404. See <a href="#controlling-query-execution">Controlling Query Execution</a> for details.</td>
+</tr>
+<tr>
+<td>timeout</td>
+<td>false</td>
+<td>The timeout is in milliseconds. If provided the request execution will be interrupted if exceeding provided timeout. In that case the API will return an ComputingInProgressAPIException. Note that the execution will continue server side, you are only interrupting the request. You can run the same request again (with or without timeout) in order to get the reply (each request is actually pooled, so performing multiple request is actually running the query only once). Note also that the error message contains a QueryID that identifies running query. You can use the /status/QueryID API in order to get information regarding the query (see <a href="#query-status">/status API</a>) or cancel the execution.</td>
+</tr>
+<tr>
+<td>state</td>
+<td>false</td>
+<td>The <code class="prettyprint">state</code> parameter, if provided, is used to apply the state configuration to the current domain. It will override any other settings. You can copy an application state - it will compute the corresponding query. Note however that an application can store custom information and do additional computation, that won&rsquo;t be supported by the API. Also the state must be for the same domain for this to work.</td>
 </tr>
 <tr>
 <td>data</td>
@@ -528,35 +543,33 @@ If it is a Bookmark, it will use the bookmark default analysis. In case of a Dom
 <td>false</td>
 <td>This parameter defines the content of the reply. You can use it to further customize what information you need, from a full reply including the explicit query as it is interpreted by the API, reply meta-information, header and data; or you can just ask for the data. See <a href="#style-parameter">Style Parameter</a> for details.</td>
 </tr>
-<tr>
-<td>timeout</td>
-<td>false</td>
-<td>The timeout is in milliseconds. If provided the request execution will be interrupted if exceeding provided timeout. In that case the API will return an ComputingInProgressAPIException. Note that the execution will continue server side, you are only interrupting the request. You can run the same request again (with or without timeout) in order to get the reply (each request is actually pooled, so performing multiple request is actually running the query only once). Note also that the error message contains a QueryID that identifies running query. You can use the /status/QueryID API in order to get information regarding the query (see <a href="#query-status">/status API</a>) or cancel the execution.</td>
-</tr>
-<tr>
-<td>state</td>
-<td>false</td>
-<td>The state parameter, if provided, is used to apply the state configuration to the current domain/bookmark. It will override any other settings. You can copy an application state - it will compute the corresponding query. Note however that an application can store custom information and do additional computation, that won&rsquo;t be supported by the API.</td>
-</tr>
 </tbody></table>
 
-<h4 id="default-query">Default Query</h4>
+<h3 id="default-query">Default Query</h3>
 
 <p>If no parameter is provided, the method will try to compute a default query.</p>
 
-<p>In case of a Bookmark reference, it will compute the Bookmark pre-defined analysis, with default settings.</p>
+<p>In case of a Bookmark reference, the /query API will compute the Bookmark pre-defined analysis, with default settings.</p>
+
+<p>In case of a Domain, the /query API will just add the available metrics and compute totals. If a date or timestamp Dimension is defined, the /query API will also try to use it to restrict the query to the current month.</p>
 
 <h4 id="using-state">Using State</h4>
 
-<p>If a stateID is provided, the API will try to load the State.</p>
+<p>If a stateID is provided using the <code class="prettyprint">state</code> parameter, the /query API will try to apply the state. Note that the state must be defined on the same Domain for this to work.</p>
 
-<h4 id="defining-query">Defining Query</h4>
+<h3 id="expressions">Expressions</h3>
+
+<p>The expressions are all evaluated in the current Domain scope (if the reference is a Bookmark, it is its domain).</p>
+
+<p>See the <a href="#expression-reference-guide">&ldquo;Expression Reference Guide&rdquo;</a> for details about how to create expressions.</p>
+
+<h3 id="defining-query">Defining Query</h3>
 
 <p>Group By and Metrics</p>
 
-<h4 id="filtering">Filtering</h4>
+<h3 id="filtering">Filtering</h3>
 
-<h4 id="period-amp-timeframe">Period &amp; TimeFrame</h4>
+<h3 id="period-amp-timeframe">Period &amp; TimeFrame</h3>
 
 <p>The <code class="prettyprint">period</code> parameter defines the expression to use as the main Period for filtering on <code class="prettyprint">timeframe</code> and also to perform time-over-time comparison (see <a href="#comparing-present-and-past-metrics">Comparing Present and Past Metrics</a>).</p>
 
@@ -573,14 +586,14 @@ If the <code class="prettyprint">timeframe</code> is defined, you must also defi
  * using an alias
  * using a expression</p>
 
-<h5 id="timeframe-defined-using-explicit-date-range">TimeFrame defined using explicit date range</h5>
+<h4 id="timeframe-defined-using-explicit-date-range">TimeFrame defined using explicit date range</h4>
 
 <p>In that case you can just provide the date or timestamp value as a formatted string. The API supports the following formats:
  * ISO 8601 timestamp: <code class="prettyprint">yyyy-MM-dd&#39;T&#39;HH:mm:ss.SSSZ</code>
  * ISO 8601 date: <code class="prettyprint">yyyy-MM-dd</code>
  * default Java timestamp format: <code class="prettyprint">EEE MMM dd HH:mm:ss zzz yyyy</code></p>
 
-<h5 id="timeframe-defined-using-an-alias">TimeFrame defined using an alias</h5>
+<h4 id="timeframe-defined-using-an-alias">TimeFrame defined using an alias</h4>
 
 <ul>
 <li><code class="prettyprint">__LAST_7_DAYS</code> </li>
@@ -589,11 +602,11 @@ If the <code class="prettyprint">timeframe</code> is defined, you must also defi
 <li><code class="prettyprint">__CURRENT_YEAR</code></li>
 </ul>
 
-<h5 id="timeframe-defined-using-an-expression">TimeFrame defined using an expression</h5>
+<h4 id="timeframe-defined-using-an-expression">TimeFrame defined using an expression</h4>
 
 <p>The last method is to define a constant expression. </p>
 
-<h4 id="comparing-present-and-past-metrics">Comparing Present and Past metrics</h4>
+<h3 id="comparing-present-and-past-metrics">Comparing Present and Past metrics</h3>
 
 <p>The <code class="prettyprint">compareTo</code> parameter accept the same definitions as the <code class="prettyprint">timeframe</code> parameter, except for the aliases. The <code class="prettyprint">compareTo</code> parameter defines a different set of aliases that you can use to easily define relative comparison:</p>
 
@@ -603,13 +616,13 @@ If the <code class="prettyprint">timeframe</code> is defined, you must also defi
 <li><code class="prettyprint">__COMPARE_TO_PREVIOUS_YEAR</code></li>
 </ul>
 
-<p>##### ordering by comparison metric</p>
+<h4 id="ordering-by-comparison-metric">ordering by comparison metric</h4>
 
-<h4 id="ordering-the-results">Ordering the results</h4>
+<h3 id="ordering-the-results">Ordering the results</h3>
 
-<h5 id="sort-expression">Sort Expression</h5>
+<h4 id="sort-expression">Sort Expression</h4>
 
-<h5 id="defining-how-to-sort">defining how to sort</h5>
+<h4 id="defining-how-to-sort">defining how to sort</h4>
 
 <p>The easiest way to define a sort order is to use an existing resultset column and provide the position of the column. For example in order to sort on the first column:
 <code class="prettyprint">ASC(0)</code>
@@ -619,11 +632,26 @@ The position is zero-based, so the first column is 0, the second is 1, etc&helli
 You cannot use index based orderBy to sort by a comareTo metric. In that case (if the `compareTo` parameter is set), indexes are not taking into account the compareTo columns generated by the query. If you need to sort the result based on a compareTo column you must use the explicit column name (see <a href="#ordering-by-comparison-metric">ordering by comparison metric</a> for details)
 </aside>
 
-<h4 id="expressions">Expressions</h4>
+<h3 id="computing-rollup">Computing Rollup</h3>
 
-<p>The expressions are all evaluated in the current Domain scope (if the reference is a Bookmark, it is its domain).</p>
+<h3 id="controlling-query-execution">Controlling Query Execution</h3>
 
-<p>See the <a href="#expression-reference-guide">&ldquo;Expression Reference Guide&rdquo;</a> for details about how to create expressions.</p>
+<p>There is different ways to control the Query execution:
+ * using Lazy execution to get result only from the cache
+ * using a timeout to control how long to wait for the results
+ * when the Query timeout it is then possible to monitor progress and cancel it, see <a href="#query-status">Query Status</a> for details.</p>
+
+<h4 id="lazy-execution">Lazy execution</h4>
+
+<p>when the <code class="prettyprint">lazy</code> parameter is set to true, the server tries to lookup the results from the cache directly. If it is not possible, no actual computation is performed <strong>at all</strong>. Note that the server may try to perform some transformation if it cannot lookup the exact same query from the cache (that&rsquo;s the smart cache).</p>
+
+<p>If the query is not in cache, the reply will state an error of cause NOT_IN_CACHE and a code 404.</p>
+
+<p>Note that if you use the <code class="prettyprint">lazy=noError</code>, the /query API will return a valid reply instead of an error code, with an empty resultset and a problem identifying the cause (not in cache). That may be useful in some situation!</p>
+
+<h4 id="timeout">Timeout</h4>
+
+<h3 id="query-pagination">Query Pagination</h3>
 
 <h3 id="reply">Reply</h3>
 
