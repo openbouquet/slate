@@ -117,11 +117,24 @@
     <div class="page-wrapper">
       <div class="dark-box"></div>
       <div class="content">
-        <h1 id="introduction">Introduction</h1>
+        <h1 id="open-bouquet-api-reference">Open Bouquet API Reference</h1>
 
 <p>Welcome to the Open Bouquet API! You can use our API to perform analytics on your data-sources connected to your Open Bouquet server.</p>
 
 <p>We have language bindings in Shell and HTML! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.</p>
+
+<p>The best way to give a try to the API is to download Open Bouquet for free, install it on your laptop, plug a database, and start exploring! <a title="https://openbouquet.io" href="url">Open Bouquet website</a> </p>
+
+<h1 id="version-4-2-30">Version 4.2.30</h1>
+<pre class="highlight shell"><code><span class="c"># you don't need to be authenticated to check the status</span>
+curl -X GET <span class="s2">"http://yourserverdomain/v4.2/rs/status
+</span></code></pre>
+
+<p>This documentation is up to date with the <strong>version 4.2.30</strong> of Open Bouquet.</p>
+
+<p>You can get your OB server version by calling the /rs/status API:</p>
+
+<p>The /rs/status API return the <code class="prettyprint">bouquet-server</code> version and also the list of loaded database plugins <code class="prettyprint">bouquet-plugins</code>.</p>
 
 <h1 id="authentication">Authentication</h1>
 
@@ -417,6 +430,16 @@ This API method support the style=HTML for interactive exploration.
 
 <h3 id="http-request">HTTP Request</h3>
 
+<blockquote>
+<p>Example of running the default query for a Domain</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="c"># run a default query on the domain 'Sales' in project 'Demo'</span>
+curl -X GET 
+    --header <span class="s1">'Accept: application/json'</span> 
+    --header <span class="s1">'Authorization: Bearer TOKEN'</span>
+    <span class="s2">"http://yourserverdomain/v4.2/analytics/'Demo'.'Sales'/query
+</span></code></pre>
+
 <p><code class="prettyprint">GET http://yourserverdomain/v4.2/analytics/&lt;REFERENCE&gt;/query</code></p>
 
 <aside class="success">
@@ -693,6 +716,22 @@ You cannot use index based orderBy to sort by a comareTo metric. In that case (i
 
 <h3 id="examples">Examples</h3>
 
+<p>In this examples we will use a project <code class="prettyprint">Demo</code> that contains a domain <code class="prettyprint">Sales</code>.</p>
+
+<p>In order to make the example clearer we will use the POST syntax, and only display the json payload as example.</p>
+<pre class="highlight shell"><code><span class="c"># run a POST query on the domain 'Sales' in project 'Demo'</span>
+curl -X POST 
+    --header <span class="s1">'Accept: application/json'</span> 
+    --header <span class="s1">'Authorization: Bearer TOKEN'</span>
+    <span class="s2">"http://yourserverdomain/v4.2/analytics/'Demo'.'Sales'/query
+    --data '{
+        "</span>period<span class="s2">":"</span>date<span class="s2">",
+        "</span>timeframe<span class="s2">":["</span>2016-01-01<span class="s2">","</span>2016-02-29<span class="s2">"],
+        "</span>groupBy<span class="s2">":["</span><span class="s1">'Country'</span><span class="s2">"],
+        "</span>metrics<span class="s2">":["</span><span class="s1">'Total'</span><span class="s2">"]
+    }'
+</span></code></pre>
+
 <h4 id="how-to-compute-metrics-by-month-and-display-it-by-pivot">How to compute metrics by month and display it by pivot?</h4>
 
 <p>How can one create a query that returns the following table:</p>
@@ -723,17 +762,6 @@ You cannot use index based orderBy to sort by a comareTo metric. In that case (i
 Note that we are using POST version of /analysis/ID/query for clarity. You can as well use the GET version.
 </aside>
 
-<blockquote>
-<p>this is the POST payload you have to send to run the query.</p>
-</blockquote>
-<pre class="highlight json"><code><span class="p">{</span><span class="w">
-</span><span class="nt">"period"</span><span class="p">:</span><span class="s2">"date"</span><span class="p">,</span><span class="w">
-</span><span class="nt">"timeframe"</span><span class="p">:[</span><span class="s2">"2016-01-01"</span><span class="p">,</span><span class="s2">"2016-02-29"</span><span class="p">],</span><span class="w">
-</span><span class="nt">"groupBy"</span><span class="p">:[</span><span class="s2">"'Country'"</span><span class="p">],</span><span class="w">
-</span><span class="nt">"metrics"</span><span class="p">:[</span><span class="s2">"'Total'"</span><span class="p">]</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre>
-
 <p>Let&rsquo;s start with the simple query that returns the total for the selected period (from 2016/01/01 to 2016/02/29):</p>
 
 <table><thead>
@@ -751,6 +779,10 @@ Note that we are using POST version of /analysis/ID/query for clarity. You can a
 <td>2.000</td>
 </tr>
 </tbody></table>
+
+<blockquote>
+<p>query monthly Total by Country </p>
+</blockquote>
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
 </span><span class="nt">"period"</span><span class="p">:</span><span class="s2">"Date"</span><span class="p">,</span><span class="w">
 </span><span class="nt">"timeframe"</span><span class="p">:[</span><span class="s2">"2016-01-01"</span><span class="p">,</span><span class="s2">"2016-02-29"</span><span class="p">],</span><span class="w">
@@ -783,6 +815,10 @@ Note that we are using POST version of /analysis/ID/query for clarity. You can a
 <aside class="notice">
 Note that we are using the `__PERIOD` alias in place of the `Date` dimension, and group by month using the `monthly()` function.
 </aside>
+
+<blockquote>
+<p>Query Monthly Total by Country with Rollup at Country level</p>
+</blockquote>
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
 </span><span class="nt">"period"</span><span class="p">:</span><span class="s2">"Date"</span><span class="p">,</span><span class="w">
 </span><span class="nt">"timeframe"</span><span class="p">:[</span><span class="s2">"2016-01-01"</span><span class="p">,</span><span class="s2">"2016-02-29"</span><span class="p">],</span><span class="w">
@@ -840,10 +876,14 @@ Note that we are using the `__PERIOD` alias in place of the `Date` dimension, an
 <td>1.200</td>
 </tr>
 </tbody></table>
+
+<blockquote>
+<p>Query Total by Country for the Period and for specific months</p>
+</blockquote>
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
 </span><span class="nt">"period"</span><span class="p">:</span><span class="s2">"Date"</span><span class="p">,</span><span class="w">
 </span><span class="nt">"timeframe"</span><span class="p">:[</span><span class="s2">"2016-01-01"</span><span class="p">,</span><span class="s2">"2016-02-29"</span><span class="p">],</span><span class="w">
-</span><span class="nt">"groupBy"</span><span class="p">:[</span><span class="s2">"'Country'"</span><span class="p">,</span><span class="s2">"monthly(__PERIOD)"</span><span class="p">],</span><span class="w">
+</span><span class="nt">"groupBy"</span><span class="p">:[</span><span class="s2">"'Country'"</span><span class="p">],</span><span class="w">
 </span><span class="nt">"metrics"</span><span class="p">:[</span><span class="s2">"'Total'"</span><span class="w">
           </span><span class="p">,</span><span class="s2">"'Total' ON monthly(__PERIOD)=date(\"01/01/16\") as 'JAN 2016'"</span><span class="w">
           </span><span class="p">,</span><span class="s2">"'Total' ON monthly(__PERIOD)=date(\"01/02/16\") as 'FEV 2016'"</span><span class="p">]</span><span class="w">
@@ -934,6 +974,63 @@ Remember to provide a valid OAuth TOKEN!
 </tbody></table>
 
 <h2 id="view-a-bookmark-or-domain">View a Bookmark or Domain</h2>
+
+<p>This method can be use in conjunction with the /query API in order to output a representation of the results suitable for generating a chart.</p>
+
+<p>For now it support the Vega Lite format: <a title="https://vega.github.io/vega-lite/" href="url">Vega Lite website</a> </p>
+
+<h3 id="http-request">HTTP Request</h3>
+
+<p><code class="prettyprint">GET http://yourserverdomain/v4.2/analytics/{REFERENCE}/view</code></p>
+
+<h3 id="html-preview">HTML preview</h3>
+
+<p>You can interactively explore the /view API by adding the parameter <code class="prettyprint">style=HTML</code>. In that mode the API will directly return a HTML preview including the Vega Lite chart.
+You can then adjust the specific /view parameters in order to explore the possibilities.</p>
+
+<h2 id="explore-scope">Explore Scope</h2>
+
+<p>This method can be use to list the objects available in a given scope. The list include:</p>
+
+<ul>
+<li>Dimensions</li>
+<li>Metrics</li>
+<li>Relations</li>
+<li>Columns (from the underlying table if the user has access)</li>
+<li>FUnctions (available in the scope or for the underlying database)</li>
+</ul>
+
+<h3 id="http-request">HTTP Request</h3>
+
+<p><code class="prettyprint">GET http://yourserverdomain/v4.2/analytics/{REFERENCE}/scope</code></p>
+
+<h3 id="url-parameters">URL Parameters</h3>
+
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>type</td>
+<td>false</td>
+<td>the type parameter allows you to filter the scope by specifying the type of expression: <code class="prettyprint">DIMENSION</code>, <code class="prettyprint">COLUMN</code>, <code class="prettyprint">METRIC</code>, <code class="prettyprint">RELATION</code>, <code class="prettyprint">FUNCTION</code></td>
+</tr>
+<tr>
+<td>values</td>
+<td>false</td>
+<td>the value parameter allows you to filter the scope by specifying the return value of the expression: <code class="prettyprint">DATE</code>, <code class="prettyprint">STRING</code>, <code class="prettyprint">CONDITION</code>, <code class="prettyprint">NUMERIC</code>, <code class="prettyprint">AGGREGATE</code></td>
+</tr>
+<tr>
+<td>value</td>
+<td>false</td>
+<td>the value parameter allows you to specify an expression to be evaluated in the current scope. The /scope output will then be computed for the resulting scope of the expression. So if the expression is a relation, the scope will be computed for the relation target domain. Remember that you can compose expression using the dot <code class="prettyprint">.</code>operator to navigate through domains.</td>
+</tr>
+</tbody></table>
+
+<h3 id="examples">Examples</h3>
 
 <h2 id="api-output-parameters">API output parameters</h2>
 
