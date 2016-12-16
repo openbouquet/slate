@@ -14,11 +14,26 @@ includes:
 search: true
 ---
 
-# Introduction
+# Open Bouquet API Reference
 
 Welcome to the Open Bouquet API! You can use our API to perform analytics on your data-sources connected to your Open Bouquet server.
 
 We have language bindings in Shell and HTML! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
+
+The best way to give a try to the API is to download Open Bouquet for free, install it on your laptop, plug a database, and start exploring! [Open Bouquet website](url "https://openbouquet.io") 
+
+# Version 4.2.30
+
+```shell
+# you don't need to be authenticated to check the status
+curl -X GET "http://yourserverdomain/v4.2/rs/status
+```
+
+This documentation is up to date with the **version 4.2.30** of Open Bouquet.
+
+You can get your OB server version by calling the /rs/status API:
+
+The /rs/status API return the `bouquet-server` version and also the list of loaded database plugins `bouquet-plugins`.
 
 # Authentication
 
@@ -259,6 +274,16 @@ This API method support the style=HTML for interactive exploration.
 
 ### HTTP Request
 
+> Example of running the default query for a Domain
+
+```shell
+# run a default query on the domain 'Sales' in project 'Demo'
+curl -X GET 
+    --header 'Accept: application/json' 
+    --header 'Authorization: Bearer TOKEN'
+    "http://yourserverdomain/v4.2/analytics/'Demo'.'Sales'/query
+```
+
 `GET http://yourserverdomain/v4.2/analytics/<REFERENCE>/query`
 
 <aside class="success">
@@ -429,6 +454,24 @@ Note that you can play with the `envelope` parameter in order to customize furth
 
 ### Examples
 
+In this examples we will use a project `Demo` that contains a domain `Sales`.
+
+In order to make the example clearer we will use the POST syntax, and only display the json payload as example.
+
+```shell
+# run a POST query on the domain 'Sales' in project 'Demo'
+curl -X POST 
+    --header 'Accept: application/json' 
+    --header 'Authorization: Bearer TOKEN'
+    "http://yourserverdomain/v4.2/analytics/'Demo'.'Sales'/query
+    --data '{
+        "period":"date",
+        "timeframe":["2016-01-01","2016-02-29"],
+        "groupBy":["'Country'"],
+        "metrics":["'Total'"]
+    }'
+```
+
 #### How to compute metrics by month and display it by pivot?
 
 How can one create a query that returns the following table:
@@ -442,16 +485,6 @@ US | 2.000 | 800 | 1.200
 Note that we are using POST version of /analysis/ID/query for clarity. You can as well use the GET version.
 </aside>
 
-> this is the POST payload you have to send to run the query.
-
-```json
-{
-"period":"date",
-"timeframe":["2016-01-01","2016-02-29"],
-"groupBy":["'Country'"],
-"metrics":["'Total'"]
-}
-```
 
 Let's start with the simple query that returns the total for the selected period (from 2016/01/01 to 2016/02/29):
 
@@ -459,6 +492,8 @@ Country | Total
 ------- | ----- 
 France | 1.000 
 US | 2.000 
+
+> query monthly Total by Country 
 
 ```json
 {
@@ -479,6 +514,8 @@ US | 2016/02/29 | 2.000
 <aside class="notice">
 Note that we are using the `__PERIOD` alias in place of the `Date` dimension, and group by month using the `monthly()` function.
 </aside>
+
+> Query Monthly Total by Country with Rollup at Country level
 
 ```json
 {
@@ -502,12 +539,13 @@ GROUPING_ID | Country | Monthly | Total
   | US | 2016-01-01 | 800
   | US | 2016-02-01 | 1.200
   
+> Query Total by Country for the Period and for specific months
 
 ```json
 {
 "period":"Date",
 "timeframe":["2016-01-01","2016-02-29"],
-"groupBy":["'Country'","monthly(__PERIOD)"],
+"groupBy":["'Country'"],
 "metrics":["'Total'"
           ,"'Total' ON monthly(__PERIOD)=date(\"01/01/16\") as 'JAN 2016'"
           ,"'Total' ON monthly(__PERIOD)=date(\"01/02/16\") as 'FEV 2016'"]
@@ -557,6 +595,45 @@ Filename&nbsp;extension | Format
 
 
 ## View a Bookmark or Domain
+
+This method can be use in conjunction with the /query API in order to output a representation of the results suitable for generating a chart.
+
+For now it support the Vega Lite format: [Vega Lite website](url "https://vega.github.io/vega-lite/") 
+
+### HTTP Request
+
+`GET http://yourserverdomain/v4.2/analytics/{REFERENCE}/view`
+
+### HTML preview
+
+You can interactively explore the /view API by adding the parameter `style=HTML`. In that mode the API will directly return a HTML preview including the Vega Lite chart.
+You can then adjust the specific /view parameters in order to explore the possibilities.
+
+## Explore Scope
+
+This method can be use to list the objects available in a given scope. The list include:
+
+* Dimensions
+* Metrics
+* Relations
+* Columns (from the underlying table if the user has access)
+* FUnctions (available in the scope or for the underlying database)
+
+### HTTP Request
+
+`GET http://yourserverdomain/v4.2/analytics/{REFERENCE}/scope`
+
+### URL Parameters
+
+Parameter | Required | Description
+--------- | -------- | -----------
+type | false | the type parameter allows you to filter the scope by specifying the type of expression: `DIMENSION`, `COLUMN`, `METRIC`, `RELATION`, `FUNCTION`
+values | false | the value parameter allows you to filter the scope by specifying the return value of the expression: `DATE`, `STRING`, `CONDITION`, `NUMERIC`, `AGGREGATE`
+value | false | the value parameter allows you to specify an expression to be evaluated in the current scope. The /scope output will then be computed for the resulting scope of the expression. So if the expression is a relation, the scope will be computed for the relation target domain. Remember that you can compose expression using the dot `.`operator to navigate through domains.
+
+### Examples
+
+
 
 
 ## API output parameters
