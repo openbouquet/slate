@@ -434,6 +434,46 @@ Note that if you use the `lazy=noError`, the /query API will return a valid repl
 
 ### Query Pagination
 
+The API provides the ability to paginate results. There are two ways to paginate the results:
+
+* limit the results returned by the database. This is covered by the `limit` and `offset` parameters. Note that the /Query API enforce that a limit is always defined (default is `limit=1000`). This is done to prevent any memory overhead while returning the data through the API (internally Open Bouquet use streaming and cache pagination in order to control memory footprint). If however you want to export a full data-set without any limitation, you'd rather use the `/export` API which is specifically designed for that.
+
+* paginate the data-table to control the data returned to the API client. This is covered by the `maxResults` and `startIndex` parameters. Since the data-table is already cached on the server, using the client pagination is very fast and does not imply any database round-trip (unless the cache has been invalidated)
+ 
+#### Database Pagination
+
+The `limit` parameter defines the maximum number of rows to retrieve from the database. The `offset` parameter defines the first row to retrieve.
+For example:
+
+* in order to retrieve the first hundred rows, do: `limit=100 & offset=0` 
+* in order to retrieve the next page, do: `limit=100 & offset=100`
+
+
+#### Client Pagination
+
+The `maxResults` parameter defines the maximum number of rows to send back to the client. The `startIndex` parameter defines the first row to retrieve.
+For example:
+
+* in order to retrieve the first ten rows, do: `maxResults=10 & startIndex=0` 
+* in order to retrieve the next page, do: `maxResults=10 & startIndex=10`
+
+#### How can I paginate through a complete data-set?
+
+You can use the database & client pagination and also the query result to easily iterate through a complete data-set.
+Say for example that you are running a new query without much knowledge of the size of the output. You are using some default values for pagination: `limit=1000 & maxresults=100` in order to preview the results in a table. The /query output provides you information regarding the size of the data-set:
+
+* `result.info.totalSize=1000`
+* `result.info.complete=false`
+
+This is because the data-set is larger than the limit. So here the server hits the database pagination limit. In that case the `result.info.complete` flag turns to `false` to signal you that you can use the offset to keep retrieving data from the database. In order to get the next page, just run the same query using `limit=1000 & offset=1000 & maxResults=10`.
+Note that when `result.info.complete=true`, the `result.info.totalSize` returns the size of the current page.
+
+You can also get information regarding the client pagination:
+
+* `result.info.pageSize` returns the value of the `maxResults` parameter
+* `result.info.startIndex` returns the value of the `startIndex` parameter
+i
+
 ### Reply
 
 #### Table Header
@@ -669,6 +709,83 @@ Envelope&nbsp;Value | Table Layout
 # Model API
 
 The Model API allows you to configure the meta-model, including project creation, customization of domains, creation of dimensions and metrics, configuring hierarchies and indexing, etc...
+
+## Dimensions
+
+### Managing Dimensions
+
+These APIs allow to manage the Dimensions definition:
+
+API | Description
+--- | -----------
+`GET http://yourserverdomain/v4.2/rs/projects/{projectId}/domais/{domainId}/dimensions` | Get all dimensions for the domain
+`POST http://yourserverdomain/v4.2/rs/projects/{projectId}/domais/{domainId}/dimensions` | create a new dimension in the domain
+`GET http://yourserverdomain/v4.2/rs/projects/{projectId}/domais/{domainId}/dimensions/{dimensionId}` | Get a dimension definition
+`PUT http://yourserverdomain/v4.2/rs/projects/{projectId}/domais/{domainId}/dimensions/{dimensionId}` | Modify a dimension definition
+`DEL http://yourserverdomain/v4.2/rs/projects/{projectId}/domais/{domainId}/dimensions/{dimensionId}` | Delete a dimension definition
+
+### Dimension Definition
+
+Attribute | Description
+--------- | -----------
+id | the dimension identifier
+name | the dimension name
+type | the dimension type: `INDEX`, `CATEGORICAL`, `CONTINUOUS`
+expression | the dimension expression defined in the domain's scope
+parentId | if the dimension is part of a hierarchy, this is the parent dimension Id
+attributes | attributes are alternative values you can associate to a dimension member
+options | defines optional behaviors to control what user can do
+
+### Dimension Option
+
+The Dimension Option allows to control how user interact with the dimension.
+
+The option's attributes are the following:
+
+Attribute | Description
+--------- | -----------
+`mandatorySelection` | when set to true it is mandatory to include a filter on that dimension in any query. If no filter is defined on the dimension, the query will fail.
+`singleSelection` | when set to true user can only perform a single selection on that dimension
+`unmodifiableSelection` | when set to true the user cannot modify the dimension selection. In that case `defaultSelection` must be set.
+`defaultSelection` | this is a constant expression that is evaluated to define the dimension default selection
+`hidden` | when set to true, the dimension selection is not returned by the API
+`groupFilter` | this is a list of user group IDs to apply the option
+`userFilter` | this is a list of user IDs to apply the option
+
+#### Restricting Option to specific user / group of users
+
+It is possible to restrict an option to a set of user group or even specific users.
+
+This is done by using the `groupFilter` or `userFilter`. If none is specified, the option will apply to any user.
+
+Note that you can combine this restriction with the `defaultSelection` in order to create a user specific selection, by using the `$'USER'` parameter in the expression definition.
+
+#### Setting the default selection
+
+The default selection must be a constant expression. You can use:
+* any constant value of type String, Date or NUmeric
+* most of the built-in functions for example to work on date
+* dimension level parameters (see following)
+
+You can use the following parameters to define it:
+
+Parameters | Description
+---------- | -----------
+`$'MIN'` `$'MAX'` | If the dimension is continuous, those parameters will resolve to the range boundaries
+`$'USER'` | This parameter will resolve to the user context, where you can access user defined properties, e.g.: `$'USER'.'systemAccountID'`. This can be useful to create a filter that depends on the user running the queries
+
+#### Examples
+
+```shell
+# add a simple default selection to a dimension and make it mandatory and single
+curl -X PUT 
+    --header 'Accept: application/json' 
+    --header 'Authorization: Bearer TOKEN'
+    "http://yourserverdomain/v4.2/rs/projects/DEMO/domains/COUNTRY/dimensions/NAME"
+    --data {
+        
+```
+
 
 # Management API
 
