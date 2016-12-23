@@ -676,6 +676,54 @@ You cannot use index based orderBy to sort by a comareTo metric. In that case (i
 
 <h3 id="query-pagination">Query Pagination</h3>
 
+<p>The API provides the ability to paginate results. There are two ways to paginate the results:</p>
+
+<ul>
+<li><p>limit the results returned by the database. This is covered by the <code class="prettyprint">limit</code> and <code class="prettyprint">offset</code> parameters. Note that the /Query API enforce that a limit is always defined (default is <code class="prettyprint">limit=1000</code>). This is done to prevent any memory overhead while returning the data through the API (internally Open Bouquet use streaming and cache pagination in order to control memory footprint). If however you want to export a full data-set without any limitation, you&rsquo;d rather use the <code class="prettyprint">/export</code> API which is specifically designed for that.</p></li>
+<li><p>paginate the data-table to control the data returned to the API client. This is covered by the <code class="prettyprint">maxResults</code> and <code class="prettyprint">startIndex</code> parameters. Since the data-table is already cached on the server, using the client pagination is very fast and does not imply any database round-trip (unless the cache has been invalidated)</p></li>
+</ul>
+
+<h4 id="database-pagination">Database Pagination</h4>
+
+<p>The <code class="prettyprint">limit</code> parameter defines the maximum number of rows to retrieve from the database. The <code class="prettyprint">offset</code> parameter defines the first row to retrieve.
+For example:</p>
+
+<ul>
+<li>in order to retrieve the first hundred rows, do: <code class="prettyprint">limit=100 &amp; offset=0</code> </li>
+<li>in order to retrieve the next page, do: <code class="prettyprint">limit=100 &amp; offset=100</code></li>
+</ul>
+
+<h4 id="client-pagination">Client Pagination</h4>
+
+<p>The <code class="prettyprint">maxResults</code> parameter defines the maximum number of rows to send back to the client. The <code class="prettyprint">startIndex</code> parameter defines the first row to retrieve.
+For example:</p>
+
+<ul>
+<li>in order to retrieve the first ten rows, do: <code class="prettyprint">maxResults=10 &amp; startIndex=0</code> </li>
+<li>in order to retrieve the next page, do: <code class="prettyprint">maxResults=10 &amp; startIndex=10</code></li>
+</ul>
+
+<h4 id="how-can-i-paginate-through-a-complete-data-set">How can I paginate through a complete data-set?</h4>
+
+<p>You can use the database &amp; client pagination and also the query result to easily iterate through a complete data-set.
+Say for example that you are running a new query without much knowledge of the size of the output. You are using some default values for pagination: <code class="prettyprint">limit=1000 &amp; maxresults=100</code> in order to preview the results in a table. The /query output provides you information regarding the size of the data-set:</p>
+
+<ul>
+<li><code class="prettyprint">result.info.totalSize=1000</code></li>
+<li><code class="prettyprint">result.info.complete=false</code></li>
+</ul>
+
+<p>This is because the data-set is larger than the limit. So here the server hits the database pagination limit. In that case the <code class="prettyprint">result.info.complete</code> flag turns to <code class="prettyprint">false</code> to signal you that you can use the offset to keep retrieving data from the database. In order to get the next page, just run the same query using <code class="prettyprint">limit=1000 &amp; offset=1000 &amp; maxResults=10</code>.
+Note that when <code class="prettyprint">result.info.complete=true</code>, the <code class="prettyprint">result.info.totalSize</code> returns the size of the current page.</p>
+
+<p>You can also get information regarding the client pagination:</p>
+
+<ul>
+<li><code class="prettyprint">result.info.pageSize</code> returns the value of the <code class="prettyprint">maxResults</code> parameter</li>
+<li><code class="prettyprint">result.info.startIndex</code> returns the value of the <code class="prettyprint">startIndex</code> parameter
+i</li>
+</ul>
+
 <h3 id="reply">Reply</h3>
 
 <h4 id="table-header">Table Header</h4>
@@ -1106,6 +1154,163 @@ You can then adjust the specific /view parameters in order to explore the possib
 <h1 id="model-api">Model API</h1>
 
 <p>The Model API allows you to configure the meta-model, including project creation, customization of domains, creation of dimensions and metrics, configuring hierarchies and indexing, etc&hellip;</p>
+
+<h2 id="dimensions">Dimensions</h2>
+
+<h3 id="managing-dimensions">Managing Dimensions</h3>
+
+<p>These APIs allow to manage the Dimensions definition:</p>
+
+<table><thead>
+<tr>
+<th>API</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code class="prettyprint">GET http://yourserverdomain/v4.2/rs/projects/{projectId}/domais/{domainId}/dimensions</code></td>
+<td>Get all dimensions for the domain</td>
+</tr>
+<tr>
+<td><code class="prettyprint">POST http://yourserverdomain/v4.2/rs/projects/{projectId}/domais/{domainId}/dimensions</code></td>
+<td>create a new dimension in the domain</td>
+</tr>
+<tr>
+<td><code class="prettyprint">GET http://yourserverdomain/v4.2/rs/projects/{projectId}/domais/{domainId}/dimensions/{dimensionId}</code></td>
+<td>Get a dimension definition</td>
+</tr>
+<tr>
+<td><code class="prettyprint">PUT http://yourserverdomain/v4.2/rs/projects/{projectId}/domais/{domainId}/dimensions/{dimensionId}</code></td>
+<td>Modify a dimension definition</td>
+</tr>
+<tr>
+<td><code class="prettyprint">DEL http://yourserverdomain/v4.2/rs/projects/{projectId}/domais/{domainId}/dimensions/{dimensionId}</code></td>
+<td>Delete a dimension definition</td>
+</tr>
+</tbody></table>
+
+<h3 id="dimension-definition">Dimension Definition</h3>
+
+<table><thead>
+<tr>
+<th>Attribute</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>id</td>
+<td>the dimension identifier</td>
+</tr>
+<tr>
+<td>name</td>
+<td>the dimension name</td>
+</tr>
+<tr>
+<td>type</td>
+<td>the dimension type: <code class="prettyprint">INDEX</code>, <code class="prettyprint">CATEGORICAL</code>, <code class="prettyprint">CONTINUOUS</code></td>
+</tr>
+<tr>
+<td>expression</td>
+<td>the dimension expression defined in the domain&rsquo;s scope</td>
+</tr>
+<tr>
+<td>parentId</td>
+<td>if the dimension is part of a hierarchy, this is the parent dimension Id</td>
+</tr>
+<tr>
+<td>attributes</td>
+<td>attributes are alternative values you can associate to a dimension member</td>
+</tr>
+<tr>
+<td>options</td>
+<td>defines optional behaviors to control what user can do</td>
+</tr>
+</tbody></table>
+
+<h3 id="dimension-option">Dimension Option</h3>
+
+<p>The Dimension Option allows to control how user interact with the dimension.</p>
+
+<p>The option&rsquo;s attributes are the following:</p>
+
+<table><thead>
+<tr>
+<th>Attribute</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code class="prettyprint">mandatorySelection</code></td>
+<td>when set to true it is mandatory to include a filter on that dimension in any query. If no filter is defined on the dimension, the query will fail.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">singleSelection</code></td>
+<td>when set to true user can only perform a single selection on that dimension</td>
+</tr>
+<tr>
+<td><code class="prettyprint">unmodifiableSelection</code></td>
+<td>when set to true the user cannot modify the dimension selection. In that case <code class="prettyprint">defaultSelection</code> must be set.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">defaultSelection</code></td>
+<td>this is a constant expression that is evaluated to define the dimension default selection</td>
+</tr>
+<tr>
+<td><code class="prettyprint">hidden</code></td>
+<td>when set to true, the dimension selection is not returned by the API</td>
+</tr>
+<tr>
+<td><code class="prettyprint">groupFilter</code></td>
+<td>this is a list of user group IDs to apply the option</td>
+</tr>
+<tr>
+<td><code class="prettyprint">userFilter</code></td>
+<td>this is a list of user IDs to apply the option</td>
+</tr>
+</tbody></table>
+
+<h4 id="restricting-option-to-specific-user-group-of-users">Restricting Option to specific user / group of users</h4>
+
+<p>It is possible to restrict an option to a set of user group or even specific users.</p>
+
+<p>This is done by using the <code class="prettyprint">groupFilter</code> or <code class="prettyprint">userFilter</code>. If none is specified, the option will apply to any user.</p>
+
+<p>Note that you can combine this restriction with the <code class="prettyprint">defaultSelection</code> in order to create a user specific selection, by using the <code class="prettyprint">$&#39;USER&#39;</code> parameter in the expression definition.</p>
+
+<h4 id="setting-the-default-selection">Setting the default selection</h4>
+
+<p>The default selection must be a constant expression. You can use:
+* any constant value of type String, Date or NUmeric
+* most of the built-in functions for example to work on date
+* dimension level parameters (see following)</p>
+
+<p>You can use the following parameters to define it:</p>
+
+<table><thead>
+<tr>
+<th>Parameters</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code class="prettyprint">$&#39;MIN&#39;</code> <code class="prettyprint">$&#39;MAX&#39;</code></td>
+<td>If the dimension is continuous, those parameters will resolve to the range boundaries</td>
+</tr>
+<tr>
+<td><code class="prettyprint">$&#39;USER&#39;</code></td>
+<td>This parameter will resolve to the user context, where you can access user defined properties, e.g.: <code class="prettyprint">$&#39;USER&#39;.&#39;systemAccountID&#39;</code>. This can be useful to create a filter that depends on the user running the queries</td>
+</tr>
+</tbody></table>
+
+<h4 id="examples">Examples</h4>
+<pre class="highlight shell"><code><span class="c"># add a simple default selection to a dimension and make it mandatory and single</span>
+curl -X PUT 
+    --header <span class="s1">'Accept: application/json'</span> 
+    --header <span class="s1">'Authorization: Bearer TOKEN'</span>
+    <span class="s2">"http://yourserverdomain/v4.2/rs/projects/DEMO/domains/COUNTRY/dimensions/NAME"</span>
+    --data <span class="o">{</span>
+
+</code></pre>
 
 <h1 id="management-api">Management API</h1>
 
