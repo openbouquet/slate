@@ -687,6 +687,7 @@ Parameter | Required | Description
 type | false | the type parameter allows you to filter the scope by specifying the type of Expression: `DIMENSION`, `COLUMN`, `METRIC`, `RELATION`, `FUNCTION`
 values | false | the value parameter allows you to filter the scope by specifying the return value of the Expression: `DATE`, `STRING`, `CONDITION`, `NUMERIC`, `AGGREGATE`
 value | false | the value parameter allows you to specify an Expression to be evaluated in the current scope. The /scope output will then be computed for the resulting scope of the Expression. If an Expression is a relation, the scope will be computed for the relation target domain. Remember that you can compose Expressions using the dot `.`operator to navigate through domains.
+target | false | this optional parameter is a reference to another domain. If it is provided the scope is computed for a relation between the source and the target domain.
 
 ### Examples
 
