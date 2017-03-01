@@ -163,7 +163,7 @@ There are no URL parameters for this method.
 
 Parameter | Required | Description
 --------- | ------- | -----------
-parent | false, default=/ | This is the path of a valid parent container. If the path is not defined, or path=/, it will display the top level content. In order to view a child content, use path=<child.selfRef>. For example in order to list all projects, path=/PROJECTS. This is working like a standard Unix path, for example: /PROJECTS/MyProject/ to list MyProject's domains, or /MYBOOKMARKS/some/folder to list bookmarks and folders. See 
+parent | false, default=/ | This is the path of a valid parent container. If the path is not defined, or path=/, it will display the top level content. In order to view a child content, use path=<child.selfRef>. For example in order to list all projects, path=/PROJECTS. This is working like a standard Unix path, for example: /PROJECTS/MyProject/ to list MyProject's domains, or /MYBOOKMARKS/some/folder to list bookmarks and folders. 
 q | false | This is a search string that you can use to filter the result. Multiple tokens can be separated by commas.
 visibility | false, default=ALL | If visibility is set to ALL, will show all existing content. If visibility is VISIBLE, it will only show objects that have been made explicitly visible.
 style | false, default=HUMAN | defines the output style, check API reference
